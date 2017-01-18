@@ -6,42 +6,55 @@ from scipy.misc import imsave;
 from scipy.misc import toimage;
 import glob;
 
+
+""" 
+    Author: Sunil Kumar Vengalil
+    methods invoked from modules: train, evaluate
+   
+
+"""
+
+
+#load jpg image files from the subdirectory named data under rootFolderName
+
 def load_im(rootFolderName):
     n = 400;
     cv_img = np.empty([n,400,200,1]);
     im_count = 0;
     fileName = rootFolderName + "/data/im/*.jpg";
+    images = [];
+
     for img in glob.glob(fileName):
         cv_img[im_count,:,:,0] =ndimage.imread(img)
-        #.transpose([2,1,0]);
         im_count = im_count + 1;
+        images.append(img);
     if im_count == 0:
 	    raise Exception("No Images loaded");
-    return cv_img;
+    return images,cv_img;
         
-
-def load_label(rootFolderName):
-    n = 400;
-    cv_img = np.empty([n,400,200,1]);
+# loads labels for the set of images
+def load_label(images):
+    cv_img = np.empty([len(images),400,200,1]);
     im_count = 0;
-    fileName = rootFolderName + "/data/label/*.jpg";
-    for img in glob.glob(fileName):
+    for img in images:
+        img.replace('im','label',1);
         cv_img[im_count,:,:,0] = ndimage.imread(img);
         im_count = im_count + 1;
-    if im_count == 0:
-	    raise Exception("No Labelsloaded");
+    if im_count != len(images):
+	    raise Exception("Not all Labelsloaded");
         
     return cv_img;
 
 # todo add errror handling
 # save the results in subdirectory output
-def save_results(rootFolderName,im):
-    fileName = rootFolderName + "/output/sample.jpg";
-    print 'Saving results in ' + fileName;
+def save_results(im,images):
+    print 'Saving results';
     numberOfImages = im.shape[0];
-    for i in range(numberOfImages):
+    i = 0;
+    for img in images:
+        img = img.replace('im','output',1);
         pilimage = toimage(im[i,:,:,0]);
-        fileName = rootFolderName + "/output/sample"+str(i)+".jpg";
-        print fileName;
-        pilimage.save(fileName);
+        print img;
+        pilimage.save(img);
+	i = i + 1;
 

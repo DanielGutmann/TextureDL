@@ -12,7 +12,7 @@ import os;
 
 
 """ 
-
+    Author: Sunil Kumar Vengalil
     USAGE EXAMPLE
         python evaluate.py -load_path <Path where model is located> 
         python evaluate.py -load_path C:\TextureDL\latestModel
@@ -91,14 +91,14 @@ def main():
     
 
     #load images
-    im = lm.load_im(os.getcwd());
+    image_files,im = lm.load_im(os.getcwd());
     print im.shape;
-    label = lm.load_label(os.getcwd());
+    label = lm.load_label(image_files);
     print label.shape;
     #h =model.fit(im,label,batch_size=100,nb_epoch=3);
     #losses = model.evaluate(im,label,batch_size=10);
     predicted = model.predict(im,batch_size=10);
-    lm.save_results(os.getcwd(), predicted);
+    lm.save_results( predicted,image_files);
     print(predicted.shape);
     
     # Save converted model structure
