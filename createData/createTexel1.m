@@ -1,0 +1,33 @@
+function [texel] = createTexel1(height,width,theta,bgrayvalue,fgrayvalue)
+
+
+texel = bgrayvalue * ones(height,width);
+
+
+%fwrite(1,sprintf('theta=%0.2f TanTheta=%0.2f \n',theta,tan(theta)));
+
+
+    lineLength=width;
+    if(theta == pi/2 || theta == 3 * (pi/2) || theta == -pi /2 )
+       x = width / 2;
+       for y = height/2 - lineLength : height/2 + lineLength
+           
+           texel(x,round(y)) = fgrayvalue;
+           
+%            texel(x-1,round(y)) = 0;
+%            
+%            texel(x+1,round(y)) = 0;
+       end
+    else
+       for x = 1 : width
+             y = ( ( x - width / 2 ) * tan( theta ) ) + ( height/2 ) ;
+             %fwrite(1,sprintf('%d %d \n',x,y));
+             if( y >= 1 && y <= height && x >= 1 && x <= width )
+                texel(x,round(y)) = fgrayvalue;
+             end
+       end
+        
+end
+
+
+
