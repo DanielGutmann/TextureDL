@@ -9,6 +9,8 @@ from keras.layers import MaxPooling2D;
 from keras.models import model_from_json;
 from keras.models import load_model;
 import os;
+import numpy as np;
+from sklearn.metrics import mean_squared_error
 
 
 """ 
@@ -32,6 +34,12 @@ parser.add_argument('-debug', action='store_true', default=0,
 
 args = parser.parse_args()
 
+def find_mse(actual, predicted):
+    numImages = actual.shape[0];
+    mse = np.zeros(numImages)
+    for i in range(0,numImages):
+	mse[i] = mean_squared_error(actual[i,:,:,0],predicted[i,:,:,0]);
+    return mse;
 
 #def load_model1(fileName):
     #json_string = open('C:\\TextureDL\\Keras_model_structure.json', 'r').read();
@@ -96,10 +104,16 @@ def main():
     label = lm.load_label(image_files);
     print label.shape;
     #h =model.fit(im,label,batch_size=100,nb_epoch=3);
-    #losses = model.evaluate(im,label,batch_size=10);
+    losses = model.evaluate(im,label,batch_size=10);
     predicted = model.predict(im,batch_size=10);
-    lm.save_results( predicted,image_files);
+    #lm.save_results( predicted,image_files);
     print(predicted.shape);
+    mse = find_mse(label,predicted);
+    sortedIndices = np.argsort(mse);
+    #print(indices);
+    print(sortedIndices); 
+    lm.save_results(predicted,image_files,sortedIndices[sortedIndices.size-10:sortedIndices.size ],'topk' );
+    lm.save_results(predicted,image_files,sortedIndices[0:9 ],'bottomk' );
     
     # Save converted model structure
     #print("Storing model...")

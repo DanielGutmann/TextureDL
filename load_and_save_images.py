@@ -9,7 +9,7 @@ import glob;
 
 """ 
     Author: Sunil Kumar Vengalil
-    methods invoked from modules: train, evaluate
+    methods for loading and saving images. Invoked from modules: train, evaluate
    
 
 """
@@ -57,4 +57,15 @@ def save_results(im,images):
         print img;
         pilimage.save(img);
 	i = i + 1;
+def save_results(im,images,indices,folder):
+    print 'Saving results';
+    
+    for i in indices:
+        img = images[i].replace('im',folder,1);
+	print(i);
+        print(img );
+        pilimage = toimage(im[i,:,:,0]);
+        pilimage.save(img);
+
+
 
