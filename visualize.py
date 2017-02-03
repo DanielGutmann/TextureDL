@@ -22,13 +22,13 @@ import matplotlib.cm as cm;
 """ 
     Author: Sunil Kumar Vengalil
     USAGE EXAMPLE
-        python visualize1.py -load_path <Path where model is located> 
-        python visualize1.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\latestModel
+        python visualize.py -load_path <Path where model is located> 
+        python visualize.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\latestModel
 
 """
 
 
-parser = argparse.ArgumentParser(description='Evaluate a model using a training data')
+parser = argparse.ArgumentParser(description='Visualize a model weights')
 parser.add_argument('-load_path', type=str,
                    help='Loads the initial model structure and weights from this location')
 parser.add_argument('-weights', type=str,
@@ -54,13 +54,16 @@ def nice_imshow(ax, data, vmin=None, vmax=None, cmap=None):
     im = ax.imshow(data, vmin=vmin, vmax=vmax, interpolation='nearest', cmap=cmap)
     pl.colorbar(im, cax=cax)
 
-
 def make_mosaic(imgs, nrows, ncols, border=1):
     """
     Given a set of images with all the same shape, makes a
     mosaic with nrows and ncols
     """
-    nimgs = imgs.shape[2]
+    nimgs = imgs.shape[len(imgs.shape) - 1];
+    if len(imgs.shape) == 4 :
+        nchannels = imgs.shape[2];
+    else:
+        nchannels = 1;
     print("Number of filters "+str(nimgs));
     imshape = imgs.shape[:2]
     print(imshape);
@@ -72,13 +75,42 @@ def make_mosaic(imgs, nrows, ncols, border=1):
     paddedh = imshape[0] + border
     paddedw = imshape[1] + border
     for i in xrange(nimgs):
-        row = int(np.floor(i / ncols))
-        col = i % ncols
-        
-        mosaic[row * paddedh:row * paddedh + imshape[0],
-               col * paddedw:col * paddedw + imshape[1]] = imgs[:,:,i]
+        for j in xrange(nchannels):
+            #row = int(np.floor(i / ncols))
+            #col = i % ncols
+            row = i;
+            col = j;
+            if len(imgs.shape) == 4 :
+                mosaic[row * paddedh:row * paddedh + imshape[0],col * paddedw:col * paddedw + imshape[1]] = imgs[:,:,i,j];
+            else:
+                mosaic[row * paddedh:row * paddedh + imshape[0],col * paddedw:col * paddedw + imshape[1]] = imgs[:,:,i];
     return mosaic
 
+
+def make_mosaic1(imgs, nrows, ncols, border=1):
+    """
+    Given a set of images with all the same shape, makes a
+    mosaic with nrows and ncols
+    """
+    nimgs = imgs.shape[3];
+    nchannels = imgs.shape[2];
+    print("Number of filters "+str(nimgs));
+    imshape = imgs.shape[:2]
+    print(imshape);
+    
+    mosaic = ma.masked_all((nrows * imshape[0] + (nrows - 1) * border,
+                            ncols * imshape[1] + (ncols - 1) * border),
+                            dtype=np.float32)
+    
+    paddedh = imshape[0] + border
+    paddedw = imshape[1] + border
+    for i in xrange(nimgs ):
+        for j in range(nchannels):
+            row = i;
+            col = j;
+        
+            mosaic[row * paddedh:row * paddedh + imshape[0], col * paddedw:col * paddedw + imshape[1]] = imgs[:,:,j,i]
+    return mosaic
 
 def create_model_seg():
     model = Sequential()
@@ -102,7 +134,6 @@ def main():
         print args.load_path;
         print("Loading Model");
   
-        #fileName = args.load_path + '/'+'Keras_model_structure.json';
         fileName = args.load_path + '/' +'Keras_model_weights.h5';
         model = load_model(fileName);
         print("Model Loaded");
@@ -120,15 +151,29 @@ def main():
     #SVG(model_to_dot(model).create(prog='dot', format='svg'));
 
 
-    W = model.layers[1].W.get_value(borrow=True)
+    layer = 1;
+
+    W = model.layers[layer].W.get_value(borrow=True)
     W = np.squeeze(W)
-    print("W shape : ", W.shape)
-    print(W[:,:,0]);
+    print("W shape : ", W.shape);
+    print("Dimension : ", len(W.shape));
+    #print(W[:,:,0]);
 
     pl.figure(figsize=(15, 15));
-    pl.title('conv1 weights');
-    nice_imshow(pl.gca(), make_mosaic(W, 6, 6), cmap=cm.binary);
+    pl.title('conv'+ str(layer)+' weights');
+        
+    if len(W.shape) == 3 :
+        numFilter = W.shape[2];
+        numChannel = 1
+        
+    else:
+        numFilter = W.shape[3];
+        numChannel = W.shape[2];
+        #nice_imshow(pl.gca(), make_mosaic1(W, numFilter, numChannel), cmap=cm.binary);
+    nice_imshow(pl.gca(), make_mosaic(W, numFilter, numChannel), cmap=cm.binary);
     pl.show();
+    figFileName = args.load_path + '/' + 'layer_'+str(layer)+'.png' 
+    pl.savefig(figFileName);
     
 main()
 
