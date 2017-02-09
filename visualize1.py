@@ -1,4 +1,6 @@
+#import pprint
 import argparse
+#import keras.optimizers as opt
 from keras.models import Sequential;
 from keras.layers import ZeroPadding2D;
 from keras.layers import Convolution2D;
@@ -7,9 +9,9 @@ from keras.models import model_from_json;
 from keras.models import load_model;
 import os;
 import numpy as np;
+#from sklearn.metrics import mean_squared_error;
 from keras.utils.visualize_util import plot;
-from IPython.display import SVG
-from keras.utils.visualize_util import model_to_dot
+from keras.utils.visualize_util import model_to_dot;
 import pylab as pl;
 import numpy.ma as ma;
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -33,59 +35,7 @@ parser.add_argument('-store_path', type=str, default='',
                    help='path to the folder where the Keras model will be stored (default: -load_path).')
 parser.add_argument('-debug', action='store_true', default=0,
 		   help='use debug mode')
-
 args = parser.parse_args()
-
-
-def nice_imshow(ax, data, vmin=None, vmax=None, cmap=None):
-    """Wrapper around pl.imshow"""
-    if cmap is None:
-        cmap = cm.jet
-    if vmin is None:
-        vmin = data.min()
-    if vmax is None:
-        vmax = data.max()
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    im = ax.imshow(data, vmin=vmin, vmax=vmax, interpolation='nearest', cmap=cmap)
-    pl.colorbar(im, cax=cax)
-
-def make_mosaic(imgs, nrows, ncols):
-    """
-    Given a set of images with all the same shape, makes a
-    mosaic with nrows and ncols
-    """
-    if len(imgs.shape) == 3 :
-        numFilter = imgs.shape[2];
-        numChannel = 1;
-    else:
-        numFilter = imgs.shape[3];
-        numChannel = imgs.shape[2];
-        
-    imshape = imgs.shape[:2]
-    print(imshape);
-    numImages = numFilter * numChannel;
-    
-    mosaic = ma.masked_all((nrows * imshape[0] + (nrows - 1) ,
-                            ncols * imshape[1] + (ncols - 1) ),
-                            dtype=np.float32);
-    
-    
-    paddedh = imshape[0] + 1;
-    paddedw = imshape[1] + 1;
-    imageIndex = 0;
-    for i in xrange(numImages):
-        row = int(np.floor(i / ncols));
-        col = i % ncols;
-        channelnum = int(np.floor(i / numFilter));
-        filternum = i % numFilter;
-        if len(imgs.shape) == 4 :
-           mosaic[row * paddedh:row * paddedh + imshape[0],col * paddedw:col * paddedw + imshape[1]] = imgs[:,:,channelnum,filternum];
-        else:
-           mosaic[row * paddedh:row * paddedh + imshape[0],col * paddedw:col * paddedw + imshape[1]] = imgs[:,:,i];
-            
-    return mosaic
-
 
 def create_model_seg():
     model = Sequential()
@@ -119,9 +69,7 @@ def main():
         #set training parameters 
         sgd = opt.SGD(lr=0.0001, decay=0.0005, momentum=0.9, nesterov=True);
         model.compile(loss='mean_squared_error', optimizer='sgd');
-    
 
-    # plot the model weights
     layer = 1;
 
     W = model.layers[layer].W.get_value(borrow=True)
@@ -130,13 +78,21 @@ def main():
     print("Dimension : ", len(W.shape));
 
     pl.figure(figsize=(15, 15));
-    pl.title('Convoution layer:'+ str(layer)+' weights');
-        
-    nice_imshow(pl.gca(), make_mosaic(W, 10,10), cmap=cm.binary);
-    figFileName = args.load_path + '/' + 'layer_'+str(layer)+'.png' 
-    pl.savefig(figFileName);
+    pl.title('Convolution Layer-'+ str(layer)+' Weights');
+    pl.imshow(W[:,:,1],cmap = cm.binary);
+    print(W[:,:,1]);
+    if len(W.shape) == 3 :
+        numFilter = W.shape[2];
+        numChannel = 1;
+    else:
+        numFilter = W.shape[3];
+        numChannel = W.shape[2];
+        #nice_imshow(pl.gca(), make_mosaic1(W, numFilter, numChannel), cmap=cm.binary);
 
-    pl.show();
+    
+    pl.show( );
+    figFileName = args.load_path + '/' + 'layer_'+str(layer)+'.png' 
+    #pl.savefig(figFileName);
     
 main()
 
