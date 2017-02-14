@@ -1,6 +1,6 @@
-import pprint
 import argparse
 import load_and_save_images as lm
+from lib_metrics import find_mse;
 import keras.optimizers as opt
 from keras.models import Sequential;
 from keras.layers import ZeroPadding2D;
@@ -10,14 +10,12 @@ from keras.models import model_from_json;
 from keras.models import load_model;
 import os;
 import numpy as np;
-from sklearn.metrics import mean_squared_error
-
 
 """ 
     Author: Sunil Kumar Vengalil
     USAGE EXAMPLE
         python evaluate.py -load_path <Path where model is located> 
-        python evaluate.py -load_path C:\TextureDL\latestModel
+        python evaluate.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data_prev\Model
 
 """
 
@@ -33,13 +31,6 @@ parser.add_argument('-debug', action='store_true', default=0,
 		   help='use debug mode')
 
 args = parser.parse_args()
-
-def find_mse(actual, predicted):
-    numImages = actual.shape[0];
-    mse = np.zeros(numImages)
-    for i in range(0,numImages):
-	mse[i] = mean_squared_error(actual[i,:,:,0],predicted[i,:,:,0]);
-    return mse;
 
 #def load_model1(fileName):
     #json_string = open('C:\\TextureDL\\Keras_model_structure.json', 'r').read();
@@ -77,15 +68,20 @@ def create_model_seg():
 
     return model
 
+def create_results_folder(path):
+    try:
+        os.mkdir(path);
+    except OSError as exception:
+        if exception.errno !=errno.EEXIST:
+            raise
+
+
 
 def main():
 
-
+    "Initialize the model"
     if hasattr(args, 'load_path') and args.load_path is not None:
-        print args.load_path;
-        print("Loading Model");
-  
-        #fileName = args.load_path + '/'+'Keras_model_structure.json';
+        print("Loading Model from" + args.load_path);
         fileName = args.load_path + '/' +'Keras_model_weights.h5';
         model = load_model(fileName);
         print("Model Loaded");
@@ -96,14 +92,13 @@ def main():
         #set training parameters 
         sgd = opt.SGD(lr=0.0001, decay=0.0005, momentum=0.9, nesterov=True);
         model.compile(loss='mean_squared_error', optimizer='sgd');
-    
 
     #load images
-    image_files,im = lm.load_im(os.getcwd());
+    dataFolder = os.getcwd() +'/data_prev';
+    image_files,im = lm.load_im(dataFolder);
     print im.shape;
     label = lm.load_label(image_files);
     print label.shape;
-    #h =model.fit(im,label,batch_size=100,nb_epoch=3);
     losses = model.evaluate(im,label,batch_size=10);
     predicted = model.predict(im,batch_size=10);
     #lm.save_results( predicted,image_files);
@@ -111,18 +106,19 @@ def main():
     mse = find_mse(label,predicted);
     sortedIndices = np.argsort(mse);
     #print(indices);
-    print(sortedIndices); 
-    lm.save_results(predicted,image_files,sortedIndices[sortedIndices.size-10:sortedIndices.size ],'topk' );
-    lm.save_results(predicted,image_files,sortedIndices[0:9 ],'bottomk' );
-    
-    # Save converted model structure
-    #print("Storing model...")
-    #json_string = model.to_json()
-    #open('C:\\TextureDL\\output\\Keras_model_structure.json', 'w').write(json_string)
-    # Save converted model weights
-    #model.save('/home/ubuntu/TextureDL/output/Keras_model_weights.h5', overwrite=True)
-    #model.save('/home/ubuntu/TextureDL/latestModel/Keras_model_weights.h5', overwrite=True)
-    #print("Finished storing the converted model to "+ store_path)
+    print(sortedIndices);
 
+    topkFolderName = dataFolder + '/topk';
+    if not os.path.exists(topkFolderName) :
+        create_results_folder(topkFolderName);
+    lm.save_results(predicted,image_files,sortedIndices[sortedIndices.size-10:sortedIndices.size ],'topk' );
+    
+    bottomkFolderName = dataFolder + '/bottomk';
+    if not os.path.exists(bottomkFolderName) :
+       create_results_folder(bottomkFolderName)
+
+    lm.save_results(predicted,image_files,sortedIndices[0:9 ],'bottomk' );
+
+            
 main()
 

@@ -5,25 +5,25 @@ from scipy.misc import imresize;
 from scipy.misc import imsave;
 from scipy.misc import toimage;
 import glob;
+import os;
+import errno;
 
 
 """ 
     Author: Sunil Kumar Vengalil
-    methods for loading and saving images. Invoked from modules: train, evaluate
-   
-
+    methods for loading and saving images.
 """
 
 
-#load jpg image files from the subdirectory named data under rootFolderName
-
+#load jpg image files from the subdirectory named im under rootFolderName
 def load_im(rootFolderName):
     n = 400;
+    
     cv_img = np.empty([n,400,200,1]);
     im_count = 0;
-    fileName = rootFolderName + "/data/im/*.jpg";
+    fileName = rootFolderName + "/im/*.jpg";
+    print 'Loading images from:'+fileName;
     images = [];
-
     for img in glob.glob(fileName):
         cv_img[im_count,:,:,0] =ndimage.imread(img)
         im_count = im_count + 1;
@@ -45,6 +45,7 @@ def load_label(images):
         
     return cv_img;
 
+
 # todo add errror handling
 # save the results in subdirectory output
 def save_results(im,images):
@@ -59,7 +60,6 @@ def save_results(im,images):
 	i = i + 1;
 def save_results(im,images,indices,folder):
     print 'Saving results';
-    
     for i in indices:
         img = images[i].replace('im',folder,1);
 	print(i);
