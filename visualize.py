@@ -134,10 +134,9 @@ def getNumberOfFiltersToBePruned(W,pruningThresholdL,pruningThresholdU):
 
 def main():
 
-
+    #load/create model
     if hasattr(args, 'load_path') and args.load_path is not None:
         print("Loading Model from" + args.load_path);
-  
         fileName = args.load_path + '/' +'Keras_model_weights.h5';
         model = load_model(fileName);
         print("Model Loaded");
@@ -150,9 +149,9 @@ def main():
         model.compile(loss='mean_squared_error', optimizer='sgd');
 
     #load images
-    dataFolder = os.getcwd() +'/data_prev';
+    dataFolder = os.getcwd() + '/data_prev';
     image_files,im_all = lm.load_im(dataFolder);
-    numImages = 1;
+    numImages = 400;
     im= im_all[0:numImages,:,:];
     print 'Image Shape:' + str(im.shape);
     label_all = lm.load_label(image_files);
@@ -164,6 +163,31 @@ def main():
     print 'Predicted Results Shape:' + str(predicted.shape);
     mse = find_mse(label,predicted);
     sortedIndices = np.argsort(mse);
+
+    topImage =  im[sortedIndices[0]];
+    topLabel =  label[sortedIndices[0]];
+    topPredicted = predicted[0];
+    bottomImage = im[sortedIndices[sortedIndices.size - 1]];
+    bottomLabel = im[sortedIndices[sortedIndices.size - 1]];
+    bottomPredicted = predicted[sortedIndices[sortedIndices.size - 1]];
+    pl.figure(1,figsize=(15,15));
+    pl.title('Results');
+    top = np.zeros([400,200,3]);
+    top[:,:,0] = np.squeeze( topImage );
+    top[:,:,1] = np.squeeze(topLabel );
+    top[:,:,2] = np.squeeze(topPredicted );
+    pl.subplot(1,3,1);
+    pl.imshow(top[:,:,0],cmap=cm.binary);
+    
+    pl.subplot(1,3,2);
+    pl.imshow(top[:,:,1],cmap=cm.binary);
+
+    pl.subplot(1,3,3);
+    pl.imshow(top[:,:,2],cmap=cm.binary);
+    
+    #nice_imshow(pl.gca(),make_mosaic(top,1,3), cmap = cm.binary);
+    
+
 
     layer = 1;
 
@@ -180,10 +204,10 @@ def main():
 
     convout6 = np.squeeze(convout6_f(im));
     print 'Output shape of layer ' +str(layer)+ ':' +str(convout6.shape);
-    pl.figure(1, figsize = (15,15));
-    pl.title('Output of layer ' +str(layer));
-    nice_imshow(pl.gca(),make_mosaic(convout6,10,10),cmap=cm.binary);
-        
+##    pl.figure(1, figsize = (15,15));
+##    pl.title('Output of layer ' +str(layer));
+##    nice_imshow(pl.gca(),make_mosaic(convout6,10,10),cmap=cm.binary);
+##        
 
 
     # plot the model weights

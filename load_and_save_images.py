@@ -37,7 +37,7 @@ def load_label(images):
     cv_img = np.empty([len(images),400,200,1]);
     im_count = 0;
     for img in images:
-        img.replace('im','label',1);
+        img = img.replace('im','label',1);
         cv_img[im_count,:,:,0] = ndimage.imread(img);
         im_count = im_count + 1;
     if im_count != len(images):

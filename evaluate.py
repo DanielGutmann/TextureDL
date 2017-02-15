@@ -32,12 +32,6 @@ parser.add_argument('-debug', action='store_true', default=0,
 
 args = parser.parse_args()
 
-#def load_model1(fileName):
-    #json_string = open('C:\\TextureDL\\Keras_model_structure.json', 'r').read();
-#    #model = model_from_json(json_string);
-#    model = load_model(fileName);
-#    return model;
-    
 
 def create_model_seg():
     model = Sequential()
@@ -105,13 +99,25 @@ def main():
     print(predicted.shape);
     mse = find_mse(label,predicted);
     sortedIndices = np.argsort(mse);
-    #print(indices);
-    print(sortedIndices);
-
+        
+    resultsFolder = dataFolder + '/results';
+    errorFile = resultsFolder + '/mse.csv';
+    
+    if not os.path.exists(resultsFolder):
+        print 'Creating folder:' + resultsFolder;
+        create_results_folder(resultsFolder);
+    ef = open(errorFile,'w');
+    for i in range(sortedIndices.size):
+        print >> ef, image_files[sortedIndices[i]]+','+ str(mse[sortedIndices[i]]);
+    ef.close();
+    
     topkFolderName = dataFolder + '/topk';
     if not os.path.exists(topkFolderName) :
         create_results_folder(topkFolderName);
-    lm.save_results(predicted,image_files,sortedIndices[sortedIndices.size-10:sortedIndices.size ],'topk' );
+    topkIndices = sortedIndices[sortedIndices.size-10:sortedIndices.size ];
+    print topkIndices;
+    
+    lm.save_results(predicted,image_files,topkIndices,'topk' );
     
     bottomkFolderName = dataFolder + '/bottomk';
     if not os.path.exists(bottomkFolderName) :
