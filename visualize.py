@@ -17,8 +17,6 @@ from keras import backend;
 import os;
 import numpy as np;
 
-#from IPython.display import SVG
-
 import pylab as pl;
 import numpy.ma as ma;
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -151,7 +149,7 @@ def main():
     #load images
     dataFolder = os.getcwd() + '/data_prev';
     image_files,im_all = lm.load_im(dataFolder);
-    numImages = 400;
+    numImages = 20;
     im= im_all[0:numImages,:,:];
     print 'Image Shape:' + str(im.shape);
     label_all = lm.load_label(image_files);
@@ -164,11 +162,12 @@ def main():
     mse = find_mse(label,predicted);
     sortedIndices = np.argsort(mse);
 
+    #Display image, label and predicted output for the image with highest and lowest error
     topImage =  im[sortedIndices[0]];
     topLabel =  label[sortedIndices[0]];
     topPredicted = predicted[0];
     bottomImage = im[sortedIndices[sortedIndices.size - 1]];
-    bottomLabel = im[sortedIndices[sortedIndices.size - 1]];
+    bottomLabel = label[sortedIndices[sortedIndices.size - 1]];
     bottomPredicted = predicted[sortedIndices[sortedIndices.size - 1]];
     pl.figure(1,figsize=(15,15));
     pl.title('Results');
@@ -176,36 +175,59 @@ def main():
     top[:,:,0] = np.squeeze( topImage );
     top[:,:,1] = np.squeeze(topLabel );
     top[:,:,2] = np.squeeze(topPredicted );
-    pl.subplot(1,3,1);
+
+    bottom = np.zeros([400,200,3]);
+    bottom[:,:,0] = np.squeeze( bottomImage );
+    bottom[:,:,1] = np.squeeze( bottomLabel );
+    bottom[:,:,2] = np.squeeze( bottomPredicted );
+    
+    pl.subplot(2,3,1);
     pl.imshow(top[:,:,0],cmap=cm.binary);
-    
-    pl.subplot(1,3,2);
+    pl.subplot(2,3,2);
     pl.imshow(top[:,:,1],cmap=cm.binary);
-
-    pl.subplot(1,3,3);
+    pl.subplot(2,3,3);
     pl.imshow(top[:,:,2],cmap=cm.binary);
+    pl.subplot(2,3,4);
+    pl.imshow(bottom[:,:,0],cmap=cm.binary);
+    pl.subplot(2,3,5);
+    pl.imshow(bottom[:,:,1],cmap=cm.binary);
+    pl.subplot(2,3,6);
+    pl.imshow(bottom[:,:,2],cmap=cm.binary);
     
-    #nice_imshow(pl.gca(),make_mosaic(top,1,3), cmap = cm.binary);
-    
-
-
     layer = 1;
-
     layer_out = model.layers[layer];
-    layer_in = model.layers[layer -1 ];
-
     inputs = [backend.learning_phase()] + model.inputs;
 
-    _convout6_f = backend.function(inputs, layer_out.output);
-
-    def convout6_f(X):
+    _convout1_f = backend.function(inputs, layer_out.output);
+    def convout1_f(X):
         # The [0] is to disable the training phase flag
-        return _convout6_f( [0] + [X] )
-
-    convout6 = np.squeeze(convout6_f(im));
-    print 'Output shape of layer ' +str(layer)+ ':' +str(convout6.shape);
-##    pl.figure(1, figsize = (15,15));
-##    pl.title('Output of layer ' +str(layer));
+        return _convout1_f( [0] + [X] )
+    imagesToVisualize = np.zeros([2,400,200,1]);
+    imagesToVisualize[0,:,:,0] = np.squeeze( topImage );
+    imagesToVisualize[1,:,:,0] = np.squeeze( bottomImage );
+    convout1 = np.squeeze(convout1_f(imagesToVisualize));
+    print 'Output shape of layer ' +str(layer)+ ':' +str(convout1.shape);
+    numFilters = convout1.shape[3];
+    numImages = imagesToVisualize.shape[0];
+    pl.figure(1, figsize = (15,15));
+    pl.title('Output of layer ' +str(layer));
+    filterNum = 0;
+    imageNum = 0;
+    position = 1;
+    print 'Number of filters:' + str(numFilters)
+    while imageNum < numImages:
+        pl.subplot(numImages,numFilters+1,position);
+        pl.imshow(np.squeeze(imagesToVisualize[imageNum,:,:,0]),cmap = cm.binary);
+        position = position + 1;
+        while filterNum < numFilters :
+            pl.subplot(numImages,numFilters+1,position);
+            pl.imshow( np.squeeze(convout1[imageNum,:,:,filterNum] ),cmap = cm.binary);
+            position = position + 1;
+            filterNum = filterNum + 1;
+        imageNum = imageNum + 1;
+        filterNum = 0;
+    
+    
 ##    nice_imshow(pl.gca(),make_mosaic(convout6,10,10),cmap=cm.binary);
 ##        
 

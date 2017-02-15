@@ -110,20 +110,38 @@ def main():
     for i in range(sortedIndices.size):
         print >> ef, image_files[sortedIndices[i]]+','+ str(mse[sortedIndices[i]]);
     ef.close();
-    
-    topkFolderName = dataFolder + '/topk';
+
+    #save predicted images for topk and bottomk
+    topkFolderName = dataFolder + '/topk_predicted';
     if not os.path.exists(topkFolderName) :
         create_results_folder(topkFolderName);
     topkIndices = sortedIndices[sortedIndices.size-10:sortedIndices.size ];
     print topkIndices;
     
-    lm.save_results(predicted,image_files,topkIndices,'topk' );
+    lm.save_results(predicted,image_files,topkIndices,'topk_predicted' );
     
-    bottomkFolderName = dataFolder + '/bottomk';
+    bottomkFolderName = dataFolder + '/bottomk_predicted';
     if not os.path.exists(bottomkFolderName) :
        create_results_folder(bottomkFolderName)
 
-    lm.save_results(predicted,image_files,sortedIndices[0:9 ],'bottomk' );
+    lm.save_results(predicted,image_files,sortedIndices[0:9 ],'bottomk_predicted' );
+
+    #save predicted images for topk and bottomk
+    
+    topkFolderName = dataFolder + '/topk_im';
+    if not os.path.exists(topkFolderName) :
+        create_results_folder(topkFolderName);
+    topkIndices = sortedIndices[sortedIndices.size-10:sortedIndices.size ];
+    print topkIndices;
+    
+    lm.save_results(im,image_files,topkIndices,'topk_im' );
+    
+    bottomkFolderName = dataFolder + '/bottomk_im';
+    if not os.path.exists(bottomkFolderName) :
+       create_results_folder(bottomkFolderName)
+
+    lm.save_results(im,image_files,sortedIndices[0:9 ],'bottomk_im' );
+
 
             
 main()
