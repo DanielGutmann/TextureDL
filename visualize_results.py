@@ -1,11 +1,11 @@
 import load_and_save_images as lm;
-from lib_metrics import find_mse;
+from lib_metrics import find_mse
 from lib_image_display import disp_images;
 
 import argparse;
 import os;
 import numpy as np;
-import numpy.ma as ma;
+#import numpy.ma as ma;
 import theano;
 
 from keras.models import Sequential;
@@ -50,6 +50,14 @@ parser.add_argument('-debug', action='store_true', default=0,
 
 args = parser.parse_args();
 
+def create_results_folder(path):
+    try:
+        os.mkdir(path);
+    except OSError as exception:
+        if exception.errno !=errno.EEXIST:
+            raise
+
+
 def create_model_seg():
     model = Sequential()
     model.add(ZeroPadding2D((1,1),input_shape=(400,200,1)))
@@ -81,22 +89,25 @@ def main():
     #load images
     dataFolder = os.getcwd() + '/data_prev';
     image_files,im_all = lm.load_im(dataFolder);
-    numImages = 20;
+    numImages = 400;
     im= im_all[0:numImages,:,:];
     print 'Image Shape:' + str(im.shape);
     label_all = lm.load_label(image_files);
     label = label_all[0:numImages,:,:]
     print 'Label Shape:' + str(label.shape);
-    losses = model.evaluate(im,label,batch_size=10);
+
+    
     predicted = model.predict(im,batch_size=10);
-    #lm.save_results( predicted,image_files);
     print 'Predicted Results Shape:' + str(predicted.shape);
     mse = find_mse(label,predicted);
     sortedIndices = np.argsort(mse);
 
-    #Display image, label and predicted output for the image with highest and lowest error
-    resultsFig = plt.figure(1,figsize=(8,8));
-    #plt.title('Results'); # TODO check if this title is coming
+    #Display image, label and predicted output for the image with highest error
+    top1Fig = plt.figure(1,figsize=(15,8));
+    plt.title('Input Image',loc='left');
+    plt.title('Actual Label',loc='center');
+    plt.title('Predicted Label',loc='right');
+    plt.axis('off');
     
     topImage =  im[sortedIndices[0]];
     topLabel =  label[sortedIndices[0]];
@@ -105,16 +116,42 @@ def main():
     bottomLabel = label[sortedIndices[sortedIndices.size - 1]];
     bottomPredicted = predicted[sortedIndices[sortedIndices.size - 1]];
     
-    imagesToShow = np.zeros([400,200,6]);
+    imagesToShow = np.zeros([400,200,3]);
     imagesToShow[:,:,0] = np.squeeze( topImage );
     imagesToShow[:,:,1] = np.squeeze( topLabel );
     imagesToShow[:,:,2] = np.squeeze( topPredicted );
 
-    imagesToShow[:,:,3] = np.squeeze( bottomImage );
-    imagesToShow[:,:,4] = np.squeeze( bottomLabel );
-    imagesToShow[:,:,5] = np.squeeze( bottomPredicted );
-    grid = disp_images(resultsFig,imagesToShow,2,3,cmap = cm.binary);
+    disp_images(top1Fig,imagesToShow,1,3,cmap = cm.binary);
+
+    #save the results figure
+    resultsFolderName = dataFolder + '/results';
+    if not os.path.exists(resultsFolderName) :
+       create_results_folder(resultsFolderName)
+       
+    resultFigFileName = resultsFolderName + '/' + 'top1'+'.png';
+    plt.savefig(resultFigFileName);
+
+
+
+    #Display image, label and predicted output for the image with lowest error
+    bottom1Fig = plt.figure(2,figsize=(15,8));
+    plt.title('Input Image',loc='left');
+    plt.title('Actual Label',loc='center');
+    plt.title('Predicted Label',loc='right');
+    plt.axis('off');
     
+
+
+    imagesToShow[:,:,0] = np.squeeze( bottomImage );
+    imagesToShow[:,:,1] = np.squeeze( bottomLabel );
+    imagesToShow[:,:,2] = np.squeeze( bottomPredicted );
+    disp_images(bottom1Fig,imagesToShow,1,3,cmap = cm.binary);
+
+    #save the results figure
+    resultFigFileName = resultsFolderName + '/' + 'bottom1'+'.png';
+    plt.savefig(resultFigFileName);
+
+
     plt.show();
     
 main()
