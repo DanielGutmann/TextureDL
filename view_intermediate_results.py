@@ -51,7 +51,7 @@ def main():
 
     #load/create model
     dataFolder = os.getcwd() + '/data_prev';
-    model,topResults,im,label = e.load_model_images_and_evaluate(args,dataFolder);
+    model,topResults,bottomResults,im,label = e.load_model_images_and_evaluate(args,dataFolder);
     
     #Display image, and output of first layer
 
