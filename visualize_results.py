@@ -1,6 +1,7 @@
 import load_and_save_images as lm;
 from lib_metrics import find_mse
 from lib_image_display import disp_images;
+import lib_evaluate as e;
 
 import argparse;
 import os;
@@ -38,16 +39,11 @@ import matplotlib.pyplot as plt;
 """
 
 
-parser = argparse.ArgumentParser(description='Visualize a model weights');
+parser = argparse.ArgumentParser(description='Visualize results and label');
 parser.add_argument('-load_path', type=str,
                    help='Loads the initial model structure and weights from this location');
-parser.add_argument('-weights', type=str,
-                   help='name of the weight file');
-parser.add_argument('-store_path', type=str, default='',
-                   help='path to the folder where the Keras model will be stored (default: -load_path).');
 parser.add_argument('-debug', action='store_true', default=0,
 		   help='use debug mode');
-
 args = parser.parse_args();
 
 def create_results_folder(path):
@@ -74,33 +70,9 @@ def create_model_seg():
 def main():
 
     #load/create model
-    if hasattr(args, 'load_path') and args.load_path is not None:
-        print("Loading Model from: " + args.load_path);
-        fileName = args.load_path + '/' +'Keras_model_weights.h5';
-        model = load_model(fileName);
-        print("Model Loaded");
-    else:
-        print("Creating new model");
-        model = create_model_seg();
-        #set training parameters 
-        sgd = opt.SGD(lr=0.0001, decay=0.0005, momentum=0.9, nesterov=True);
-        model.compile(loss='mean_squared_error', optimizer='sgd');
-
-    #load images
     dataFolder = os.getcwd() + '/data_prev';
-    image_files,im_all = lm.load_im(dataFolder);
-    numImages = 400;
-    im= im_all[0:numImages,:,:];
-    print 'Image Shape:' + str(im.shape);
-    label_all = lm.load_label(image_files);
-    label = label_all[0:numImages,:,:]
-    print 'Label Shape:' + str(label.shape);
+    model,topResults,bottomResults,im,label = e.load_model_images_and_evaluate(args,dataFolder);
 
-    
-    predicted = model.predict(im,batch_size=10);
-    print 'Predicted Results Shape:' + str(predicted.shape);
-    mse = find_mse(label,predicted);
-    sortedIndices = np.argsort(mse);
 
     #Display image, label and predicted output for the image with highest error
     top1Fig = plt.figure(1,figsize=(15,8));
@@ -109,19 +81,12 @@ def main():
     plt.title('Predicted Label',loc='right');
     plt.axis('off');
     
-    topImage =  im[sortedIndices[0]];
-    topLabel =  label[sortedIndices[0]];
-    topPredicted = predicted[0];
-    bottomImage = im[sortedIndices[sortedIndices.size - 1]];
-    bottomLabel = label[sortedIndices[sortedIndices.size - 1]];
-    bottomPredicted = predicted[sortedIndices[sortedIndices.size - 1]];
-    
-    imagesToShow = np.zeros([400,200,3]);
-    imagesToShow[:,:,0] = np.squeeze( topImage );
-    imagesToShow[:,:,1] = np.squeeze( topLabel );
-    imagesToShow[:,:,2] = np.squeeze( topPredicted );
+##    imagesToShow = np.zeros([400,200,3]);
+##    imagesToShow[:,:,0] = np.squeeze( topImage );
+##    imagesToShow[:,:,1] = np.squeeze( topLabel );
+##    imagesToShow[:,:,2] = np.squeeze( topPredicted );
 
-    disp_images(top1Fig,imagesToShow,1,3,cmap = cm.binary);
+    disp_images(top1Fig,topResults,1,3,pad = 1,cmap = cm.binary);
 
     #save the results figure
     resultsFolderName = dataFolder + '/results';
@@ -142,10 +107,10 @@ def main():
     
 
 
-    imagesToShow[:,:,0] = np.squeeze( bottomImage );
-    imagesToShow[:,:,1] = np.squeeze( bottomLabel );
-    imagesToShow[:,:,2] = np.squeeze( bottomPredicted );
-    disp_images(bottom1Fig,imagesToShow,1,3,cmap = cm.binary);
+##    imagesToShow[:,:,0] = np.squeeze( bottomImage );
+##    imagesToShow[:,:,1] = np.squeeze( bottomLabel );
+##    imagesToShow[:,:,2] = np.squeeze( bottomPredicted );
+    disp_images(bottom1Fig,bottomResults,1,3,pad = 1, cmap = cm.binary);
 
     #save the results figure
     resultFigFileName = resultsFolderName + '/' + 'bottom1'+'.png';
