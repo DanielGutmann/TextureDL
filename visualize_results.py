@@ -52,21 +52,6 @@ def create_results_folder(path):
     except OSError as exception:
         if exception.errno !=errno.EEXIST:
             raise
-
-
-def create_model_seg():
-    model = Sequential()
-    model.add(ZeroPadding2D((1,1),input_shape=(400,200,1)))
-    model.add(Convolution2D(10, 3, 3, dim_ordering='tf' ,activation='relu'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(10, 3, 3,dim_ordering='tf', activation='relu'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(MaxPooling2D((3,3), strides=(1,1),dim_ordering='tf'))
-
-    model.add( Convolution2D(1,1,1,init='normal',dim_ordering='tf') );
-    return model
-
-
 def main():
 
     #load/create model
@@ -81,11 +66,6 @@ def main():
     plt.title('Predicted Label',loc='right');
     plt.axis('off');
     
-##    imagesToShow = np.zeros([400,200,3]);
-##    imagesToShow[:,:,0] = np.squeeze( topImage );
-##    imagesToShow[:,:,1] = np.squeeze( topLabel );
-##    imagesToShow[:,:,2] = np.squeeze( topPredicted );
-
     disp_images(top1Fig,topResults,1,3,pad = 1,cmap = cm.binary);
 
     #save the results figure
@@ -104,18 +84,13 @@ def main():
     plt.title('Actual Label',loc='center');
     plt.title('Predicted Label',loc='right');
     plt.axis('off');
-    
 
 
-##    imagesToShow[:,:,0] = np.squeeze( bottomImage );
-##    imagesToShow[:,:,1] = np.squeeze( bottomLabel );
-##    imagesToShow[:,:,2] = np.squeeze( bottomPredicted );
     disp_images(bottom1Fig,bottomResults,1,3,pad = 1, cmap = cm.binary);
 
     #save the results figure
     resultFigFileName = resultsFolderName + '/' + 'bottom1'+'.png';
     plt.savefig(resultFigFileName);
-
 
     plt.show();
     

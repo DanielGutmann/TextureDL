@@ -76,7 +76,9 @@ def load_model_images_and_evaluate(args,dataFolder,numImages=None) :
     topImage =  im[sortedIndices[0]];
     topLabel =  label[sortedIndices[0]];
     topPredicted = predicted[0];
+    topResults = np.concatenate( (topImage, topLabel,topPredicted),axis = 2);
     bottomImage = im[sortedIndices[sortedIndices.size - 1]];
     bottomLabel = label[sortedIndices[sortedIndices.size - 1]];
     bottomPredicted = predicted[sortedIndices[sortedIndices.size - 1]];
-    return model,np.concatenate( (topImage, topLabel,topPredicted),axis = 2),im,label;
+    bottomResults = np.concatenate( (bottomImage, bottomLabel,bottomPredicted),axis = 2);
+    return model,topResults,bottomResults,im,label;
