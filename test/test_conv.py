@@ -22,6 +22,9 @@ import matplotlib.cm as cm;
 import matplotlib.pyplot as plt;
 
 
+from skimage import data, io, filters;
+
+
 """
     Test code for performing convolutions using keras
     set PYTHONPATH=%PYTHONPATH%;C:\Users\Sunilkumar\Documents\GitHub\TextureDL
@@ -36,12 +39,36 @@ import matplotlib.pyplot as plt;
 
 """
 
+def getSobelMask() :
+    return np.asarray( [
+            [1,2,1],
+            [0,0,0],
+            [-1,-2,-1]
+            ]);
+
+def getPrewitMask() :
+    return np.asarray( [
+            [1,1,1],
+            [0,0,0],
+            [-1,-1,-1]
+            ]);
+
+
 def main():
+
+    weights = np.zeros((1,3,3,1,5));
+    weights[0,:,:,0,0] = getSobelMask();
+    weights[0,:,:,0,1] = getPrewitMask();
+    
+
+    #weights = getSobelMask();
+    print weights.shape;
 
     # create  model with  single layers 5 filters each of size 3 X 3
     model = Sequential();
     model.add(ZeroPadding2D((1,1),input_shape=(20,20,1)));
-    layer = Convolution2D(5,3,3,dim_ordering='tf');
+    layer = Convolution2D(5,3,3,dim_ordering='tf', weights = weights,bias = False);
+    #layer = Convolution2D(5,3,3,weights=weights, bias = False);
     model.add( layer );
     #model.compile();
 
@@ -62,17 +89,29 @@ def main():
     print predicted.shape;
     im1 = im[0,:,:,0];
     pr1 = predicted[0,:,:,0];
+    pr2 = predicted[0,:,:,1];
+    pr3 = predicted[0,:,:,2];
+    pr4 = predicted[0,:,:,3];
+    pr5 = predicted[0,:,:,4];
 
     print im1.shape;
     print pr1.shape;
+    print pr2.shape;
+    print pr3.shape;
+    print pr4.shape;
+    print pr5.shape;
 
     
     im1.shape = (20,20,1);
     pr1.shape = (20,20,1);
+    pr2.shape = (20,20,1);
+    pr3.shape = (20,20,1);
+    pr4.shape = (20,20,1);
+    pr5.shape = (20,20,1);
     
-    imagesToDisplay = np.concatenate( (im1,pr1), axis = 2);
+    imagesToDisplay = np.concatenate( (im1,pr1,pr2,pr3,pr4), axis = 2);
     
-    disp_images(fig,imagesToDisplay,1,2,pad = 1,cmap = cm.binary);
+    disp_images(fig,imagesToDisplay,2,3,pad = 1,cmap = cm.binary);
 
    
     plt.show();
