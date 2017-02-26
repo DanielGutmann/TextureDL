@@ -60,10 +60,10 @@ def nice_imshow(ax, data, vmin=None, vmax=None, cmap=None):
     if cmap is None:
         cmap = cm.jet
     if vmin is None:
-        vmin = data.min()
+        vmin = data.min();
     if vmax is None:
-        vmax = data.max()
-    divider = make_axes_locatable(ax)
+        vmax = data.max();
+    divider = make_axes_locatable(ax);
     cax = divider.append_axes("right", size="5%", pad=0.05);
     im = ax.imshow(data, vmin=vmin, vmax=vmax, interpolation='nearest', cmap=cmap)
     pl.colorbar(im, cax=cax)
@@ -114,25 +114,55 @@ def main():
     # plot the model weights
     layer = 3;
 
-    W = model.layers[layer].W.get_value(borrow=True)
-    W = np.squeeze(W)
-    print("W shape : ", W.shape);
-    print("Dimension : ", len(W.shape));
+    #W = model.layers[layer].W.get_value(borrow=True);
+    #W = np.squeeze(W)
+    #bias = model.layers[layer].B.get_value(borrow.True);
+
+    weights = model.layers[layer].get_weights()[0];
+    bias = model.layers[layer].get_weights()[1];
+
+    print("weights Shape : ", weights.shape);
+    print("weights Dimension : ", len(weights.shape));
+
+    print("bias Shape : ", bias.shape);
+    print("bias Dimension : ", len(bias.shape));
     
 
     pl.figure(1,figsize=(15, 15));
     pl.title('Convoution layer:'+ str(layer)+' weights');
         
-    nice_imshow(pl.gca(), make_mosaic(W, 10,10), cmap=cm.binary);
+    nice_imshow(pl.gca(), make_mosaic(weights, 10,10), cmap=cm.binary);
     figFileName = args.load_path + '/' + 'layer_'+str(layer)+'.png';
     pl.savefig(figFileName);
 
 
-    freq,values = np.histogram(W,bins=1000);
+    freq,values = np.histogram(weights,bins=1000);
     pl.figure(2,figsize=(15,15));
     pl.title('Histogram of weights Layer:' +str(layer));
     pl.plot(values[1:len(values)],freq);
 
+
+    pruningThreshold = 20;
+    numberOfFiltersToPrune  =0 ;
+    
+    if len(weights.shape) == 4:
+        pruningMask = np.ones((weights.shape[2], weights.shape[3]));
+        for i in range(weights.shape[2]) : #for all filter
+            for j in range(weights.shape[3]) : # for all channel
+                weightMatrix = weights[:,:,i,j];
+                maxW = np.amax( weights[:,:,i,j] );
+                minW = np.amin( weights[:,:,i,j] );
+                if  abs(minW)  <  pruningThreshold  and abs(maxW) < pruningThreshold:
+                    print  '('+str(i) +','+str(j) +')';
+                    numberOfFiltersToPrune = numberOfFiltersToPrune + 1;
+                    pruningMask[i][j] = 0;
+
+    pl.figure(3,figsize = (15,15) );
+    pl.title('Bias values');
+    pl.plot( bias);
+
+    print  'Total Number of channels= '  + str(numberOfFiltersToPrune);
+    
     #open files
     pl.show();
     

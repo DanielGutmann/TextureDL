@@ -35,8 +35,6 @@ from skimage import data, io, filters;
     Reference links used:
     https://github.com/fchollet/keras/
 
-    TODO:  set weights for the model with sobel and previt filter
-
 """
 
 def getSobelMask() :
@@ -54,53 +52,42 @@ def getPrewitMask() :
             ]);
 
 
-def main():
-
-    weights = np.zeros((1,3,3,1,5));
-    weights[0,:,:,0,0] = getSobelMask();
-    weights[0,:,:,0,1] = getPrewitMask();
-    
+def test_conv(fig,bias):
+    if bias :
+        weights = np.zeros((3,3,1,5));
+        weights[:,:,0,0] = getSobelMask();
+        weights[:,:,0,1] = getPrewitMask();
+        weights = [ weights,np.ones(5)];
+    else :
+        weights = np.zeros(1,3,3,1,5);
+        weights[0,:,:,0,0] = getSobelMask();
+        weights[0,:,:,0,1] = getPrewitMask();
 
     #weights = getSobelMask();
-    print weights.shape;
-
+    #print weights.shape;
     # create  model with  single layers 5 filters each of size 3 X 3
     model = Sequential();
     model.add(ZeroPadding2D((1,1),input_shape=(20,20,1)));
-    layer = Convolution2D(5,3,3,dim_ordering='tf', weights = weights,bias = False);
-    #layer = Convolution2D(5,3,3,weights=weights, bias = False);
+    layer = Convolution2D(5,3,3,dim_ordering='tf', weights = weights,bias = bias);
     model.add( layer );
-    #model.compile();
 
     #create image with a horizontal line
     im = np.zeros( 400 );
     im.shape = (1,20,20,1);
-
     im[0,10,:,0] = 1;
     
     predicted = model.predict(im);
 
     #Display image, and output for each of the five filters
-    fig = plt.figure(1,figsize=(15,8));
-    plt.title('Input Image',loc='left');
-    plt.title('Filtered Image',loc='right');
-    plt.axis('off');
-    print im.shape;
-    print predicted.shape;
+    
+    print 'test_conv: Image Shape' + str( im.shape );
+    print 'test_conv: Predi Shape' + str( predicted.shape );
     im1 = im[0,:,:,0];
     pr1 = predicted[0,:,:,0];
     pr2 = predicted[0,:,:,1];
     pr3 = predicted[0,:,:,2];
     pr4 = predicted[0,:,:,3];
     pr5 = predicted[0,:,:,4];
-
-    print im1.shape;
-    print pr1.shape;
-    print pr2.shape;
-    print pr3.shape;
-    print pr4.shape;
-    print pr5.shape;
-
     
     im1.shape = (20,20,1);
     pr1.shape = (20,20,1);
@@ -110,11 +97,28 @@ def main():
     pr5.shape = (20,20,1);
     
     imagesToDisplay = np.concatenate( (im1,pr1,pr2,pr3,pr4), axis = 2);
-    
     disp_images(fig,imagesToDisplay,2,3,pad = 1,cmap = cm.binary);
+    return model;
 
-   
-    plt.show();
+fig = plt.figure(1,figsize=(15,8));
+plt.title('Input Image',loc='left');
+plt.title('Filtered Image',loc='right');
+plt.axis('off');
     
-main()
+#test_conv(False);
+model = test_conv(fig, True);
+#weights = model.layers[1].W.get_value(borrow = True); # TODO verify what borrow = true does
+#weights = model.layers[1].W;
+#weights = model.layers[1].params[0];
+weights = model.layers[1].get_weights()[0];
+bias = model.layers[1].get_weights()[1];
+#print 'Number of dimension of weights:'+ str( len(weights) );
+print 'Weight class:' + str( type(weights) );
+print 'Weight shape:' + str( (weights).shape );
 
+print 'Bias class:' + str( type(bias) );
+print 'Bias shape:' + str( (bias).shape );
+print bias;
+
+
+plt.show();
