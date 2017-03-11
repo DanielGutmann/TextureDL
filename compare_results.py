@@ -6,7 +6,6 @@ import lib_evaluate as e;
 import argparse;
 import os;
 import numpy as np;
-#import numpy.ma as ma;
 import theano;
 
 from keras.models import Sequential;
@@ -118,22 +117,22 @@ def main():
 
 
     #Display image, label and predicted output for the image with lowest error
-##    imagesToshowBottom = np.zeros((400,200,3));
-##    imagesToshowBottom[:,:,0] = bottomResults[:,:,1];
-##    imagesToshowBottom[:,:,1] = bottomResults[:,:,2];
-##    imagesToshowBottom[:,:,2] = bottomResults2[:,:,2];
-##    bottom1Fig = plt.figure(1,figsize=(15,8));
-##    plt.title('Label',loc='left');
-##    plt.title('Model-1 Result',loc='center');
-##    plt.title('Model-2 Result',loc='right');
-##    plt.axis('off');
-##    
-##    disp_images(bottom1Fig,imagesToshowBottom,1,3,pad = 1,cmap = cm.binary);
-##
-##    
-##    #save the results figure
-##    resultFigFileName = resultsFolderName + '/' + 'bottom1'+'.png';
-##    plt.savefig(resultFigFileName);
+    imagesToshowBottom = np.zeros((400,200,3));
+    imagesToshowBottom[:,:,0] = bottomResults[:,:,1];
+    imagesToshowBottom[:,:,1] = bottomResults[:,:,2];
+    imagesToshowBottom[:,:,2] = bottomResults2[:,:,2];
+    bottom1Fig = plt.figure(2,figsize=(15,8));
+    plt.title('Label',loc='left');
+    plt.title('Model-1 Result',loc='center');
+    plt.title('Model-2 Result',loc='right');
+    plt.axis('off');
+    
+    disp_images(bottom1Fig,imagesToshowBottom,1,3,pad = 1,cmap = cm.binary);
+
+    
+    #save the results figure
+    resultFigFileName = resultsFolderName + '/' + 'bottom1'+'.png';
+    plt.savefig(resultFigFileName);
 
     plt.show();
     
