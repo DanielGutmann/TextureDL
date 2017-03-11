@@ -22,19 +22,32 @@ from lib_metrics import find_mse;
     returning important metrics and results
 """
 
+MIN_LAYERS = 7;
+
 
 #Create a new model  for image segmentation with randomly initialized weights
-def create_model_seg():
+def create_model_seg(numLayers = MIN_LAYERS):
+    if numLayers  < MIN_LAYERS :
+        raise Exception('Needs at least 7 layers');
+    if numLayers % 2 == 0 :
+        raise Exception('Total number of layers should be odd');
+    
     model = Sequential();
     model.add(ZeroPadding2D((1,1),input_shape=(400,200,1)));
     model.add(Convolution2D(10, 3, 3, dim_ordering='tf' ,activation='relu'));
     model.add(ZeroPadding2D((1,1)));
     model.add(Convolution2D(10, 3, 3,dim_ordering='tf', activation='relu'));
+    
+    for i in range( (numLayers - MIN_LAYERS ) / 2) :
+        model.add(ZeroPadding2D((1,1)));
+        model.add(Convolution2D(10, 3, 3,dim_ordering='tf', activation='relu'));
+    
+
     model.add(ZeroPadding2D((1,1)));
     model.add(MaxPooling2D((3,3), strides=(1,1),dim_ordering='tf'));
-
     model.add( Convolution2D(1,1,1,init='normal',dim_ordering='tf') );
     return model
+
 
 
 # load/create  a model, evaluate using a dataset and return  results and model object
@@ -54,7 +67,6 @@ def load_model_images_and_evaluate(args,dataFolder,numImages=None) :
         model.compile(loss='mean_squared_error', optimizer='sgd');
 
     #load images
-    
     if numImages == None :
         #Load all images
         image_files,im = lm.load_im(dataFolder);
@@ -82,3 +94,36 @@ def load_model_images_and_evaluate(args,dataFolder,numImages=None) :
     bottomPredicted = predicted[sortedIndices[sortedIndices.size - 1]];
     bottomResults = np.concatenate( (bottomImage, bottomLabel,bottomPredicted),axis = 2);
     return model,topResults,bottomResults,im,label;
+
+# evaluate using a dataset and return  results 
+# Return :topResults: model : Newly created/loaded Model object
+#         topResults:  ndarray with three images ( image number along last axis)- input image, label and predicted result which gives best result for the model
+def load_images_and_evaluate1(model, args,dataFolder,numImages=None) :
+    #load images
+    if numImages == None :
+        #Load all images
+        image_files,im = lm.load_im(dataFolder);
+        label = lm.load_label(image_files);
+    else:
+        image_files,im_all = lm.load_im(dataFolder);
+        im= im_all[0:numImages,:,:];
+        label_all = lm.load_label(image_files);
+        label = label_all[0:numImages,:,:]
+
+    print 'Image Shape:' + str(im.shape);
+    print 'Label Shape:' + str(label.shape);
+    
+    predicted = model.predict(im,batch_size=10);
+    print 'Predicted Results Shape:' + str(predicted.shape);
+    mse = find_mse(label,predicted);
+    sortedIndices = np.argsort(mse);
+
+    topImage =  im[sortedIndices[0]];
+    topLabel =  label[sortedIndices[0]];
+    topPredicted = predicted[0];
+    topResults = np.concatenate( (topImage, topLabel,topPredicted),axis = 2);
+    bottomImage = im[sortedIndices[sortedIndices.size - 1]];
+    bottomLabel = label[sortedIndices[sortedIndices.size - 1]];
+    bottomPredicted = predicted[sortedIndices[sortedIndices.size - 1]];
+    bottomResults = np.concatenate( (bottomImage, bottomLabel,bottomPredicted),axis = 2);
+    return topResults,bottomResults,im,label;
