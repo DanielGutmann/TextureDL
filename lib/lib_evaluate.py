@@ -13,8 +13,6 @@ from keras.models import load_model;
 import load_and_save_images as lm;
 from lib_metrics import find_mse;
 
-
-
 """ 
     Author: Sunil Kumar Vengalil
     
@@ -23,8 +21,6 @@ from lib_metrics import find_mse;
 """
 
 MIN_LAYERS = 7;
-
-
 #Create a new model  for image segmentation with randomly initialized weights
 def create_model_seg(numLayers = MIN_LAYERS):
     if numLayers  < MIN_LAYERS :
@@ -51,21 +47,9 @@ def create_model_seg(numLayers = MIN_LAYERS):
 
 
 # load/create  a model, evaluate using a dataset and return  results and model object
-# Return : model,topResults: model : Newly created/loaded Model object
-#          topResults:  ndarray with three images ( image number along last axis)- input image, label and predicted result which gives best result for the model
-def load_model_images_and_evaluate(args,dataFolder,numImages=None) :
-    if hasattr(args, 'load_path') and args.load_path is not None:
-        print("Loading Model from: " + args.load_path);
-        fileName = args.load_path + '/' +'Keras_model_weights.h5';
-        model = load_model(fileName);
-        print("Model Loaded");
-    else:
-        print("Creating new model");
-        model = create_model_seg();
-        #set training parameters 
-        sgd = opt.SGD(lr=0.0001, decay=0.0005, momentum=0.9, nesterov=True);
-        model.compile(loss='mean_squared_error', optimizer='sgd');
-
+# Return : model,predicted,im,label
+def load_model_images_and_evaluate(model,dataFolder,numImages=None) :
+    
     #load images
     if numImages == None :
         #Load all images
@@ -81,6 +65,15 @@ def load_model_images_and_evaluate(args,dataFolder,numImages=None) :
     print 'Label Shape:' + str(label.shape);
     
     predicted = model.predict(im,batch_size=10);
+
+    return predicted,im,label;
+
+
+# load/create  a model, evaluate using a dataset and return  top k  and bottom k results and model object
+# Return : topResults: model : Newly created/loaded Model object
+#          topResults:  ndarray with three images ( image number along last axis)- input image, label and predicted result which gives best result for the model
+def evaluate_top_and_bottom_k(model,dataFolder,numImages=None) :
+    predicted,im,label = load_model_images_and_evaluate(model,dataFolder,numImages);
     print 'Predicted Results Shape:' + str(predicted.shape);
     mse = find_mse(label,predicted);
     sortedIndices = np.argsort(mse);
@@ -93,12 +86,13 @@ def load_model_images_and_evaluate(args,dataFolder,numImages=None) :
     bottomLabel = label[sortedIndices[sortedIndices.size - 1]];
     bottomPredicted = predicted[sortedIndices[sortedIndices.size - 1]];
     bottomResults = np.concatenate( (bottomImage, bottomLabel,bottomPredicted),axis = 2);
-    return model,topResults,bottomResults,im,label;
+    return topResults,bottomResults,im,label;
+
 
 # evaluate using a dataset and return  results 
 # Return :topResults: model : Newly created/loaded Model object
 #         topResults:  ndarray with three images ( image number along last axis)- input image, label and predicted result which gives best result for the model
-def load_images_and_evaluate1(model, args,dataFolder,numImages=None) :
+def load_images_and_evaluate1(model, args,dataFolder,numImages = None) :
     #load images
     if numImages == None :
         #Load all images

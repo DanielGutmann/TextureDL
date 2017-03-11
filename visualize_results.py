@@ -56,7 +56,23 @@ def main():
 
     #load/create model
     dataFolder = os.getcwd() + '/data_prev';
-    model,topResults,bottomResults,im,label = e.load_model_images_and_evaluate(args,dataFolder);
+    modelFolder = dataFolder+'/latestModel';
+
+    if hasattr(args, 'load_path') and args.load_path is not None:
+        print("Loading Model from: " + args.load_path);
+        modelFolder = args.load_path; 
+        fileName =  modelFolder  +'/Keras_model_weights.h5';
+        model = e.load_model(fileName);
+        print("Model Loaded");
+    else:
+        print("Creating new model");
+        model = e.create_model_seg();
+        #set training parameters 
+        sgd = opt.SGD(lr=0.0001, decay=0.0005, momentum=0.9, nesterov=True);
+        model.compile(loss='mean_squared_error', optimizer='sgd');
+
+    
+    topResults,bottomResults,im,label = e.evaluate_top_and_bottom_k(model,dataFolder);
 
 
     #Display image, label and predicted output for the image with highest error
@@ -69,13 +85,12 @@ def main():
     disp_images(top1Fig,topResults,1,3,pad = 1,cmap = cm.binary);
 
     #save the results figure
-    resultsFolderName = dataFolder + '/results';
+    resultsFolderName = modelFolder + '/results';
     if not os.path.exists(resultsFolderName) :
        create_results_folder(resultsFolderName)
        
     resultFigFileName = resultsFolderName + '/' + 'top1'+'.png';
     plt.savefig(resultFigFileName);
-
 
 
     #Display image, label and predicted output for the image with lowest error
