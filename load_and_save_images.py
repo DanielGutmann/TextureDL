@@ -17,19 +17,20 @@ import errno;
 
 #load jpg image files from the subdirectory named im under rootFolderName
 def load_im(rootFolderName):
-    n = 400;
-    
+    fileName = rootFolderName + "/im/*.jpg";
+    print 'load_im:Loading images from:'+fileName;
+    n = len(glob.glob(fileName));
+    images = [];
+    print('load_im: Number of images=' + str(n) )
     cv_img = np.empty([n,400,200,1]);
     im_count = 0;
-    fileName = rootFolderName + "/im/*.jpg";
-    print 'Loading images from:'+fileName;
-    images = [];
     for img in glob.glob(fileName):
         cv_img[im_count,:,:,0] =ndimage.imread(img)
         im_count = im_count + 1;
         images.append(img);
     if im_count == 0:
 	    raise Exception("No Images loaded");
+
     return images,cv_img;
         
 # loads labels for the set of images

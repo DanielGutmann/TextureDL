@@ -89,16 +89,25 @@ def addLayer(model, prunedModel, layerIndex,filterIndicesToPrune = [],prune = Fa
 
 def main():
 
-    dataFolder = os.getcwd() + '/data_prev';
-    numImages = 400;
+    dataFolder = os.getcwd() + '/data600';
+    modelFolder = dataFolder+'/latestModel';
 
-    model, topResults,bottomResults,im,label = e.load_model_images_and_evaluate(args,dataFolder,numImages);
-    
+    if hasattr(args, 'load_path') and args.load_path is not None:
+        print("Loading Model from: " + args.load_path);
+        modelFolder = args.load_path; 
+        fileName =  modelFolder  +'/Keras_model_weights.h5';
+        model = e.load_model(fileName);
+        print("Model Loaded");
+    else:
+        print("Creating new model");
+        model = e.create_model_seg();
+        #set training parameters 
+        sgd = opt.SGD(lr=0.0001, decay=0.0005, momentum=0.9, nesterov=True);
+        model.compile(loss='mean_squared_error', optimizer='sgd');
 
-    filterIndicesToPrune = [0,8]; # for layer 1
-    layerToPrune = 3;
-    filterIndicesToPrune = [1,2]; # for layer 3
-       
+
+    predicted,im,label,image_files = e.load_model_images_and_evaluate(model,dataFolder);
+      
     appendedModel = e.create_model_seg(9);
     numberOfLayer = len(model.layers);
     print 'Number of Layers:' + str(numberOfLayer)
@@ -132,6 +141,7 @@ def main():
     #open('C:\\TextureDL\\output\\Keras_model_structure.json', 'w').write(json_string)
     # Save converted model weights
     #model.save('/home/ubuntu/TextureDL/output/Keras_model_weights.h5', overwrite=True)
+    #model.save('/home/ubuntu/Git/TextureDL/data_prev/latestModel/Keras_model_weights.h5', overwrite=True)
     model.save('/home/ubuntu/Git/TextureDL/data_prev/latestModel/Keras_model_weights.h5', overwrite=True)
     #print("Finished storing the converted model to "+ store_path)
 

@@ -66,26 +66,32 @@ def load_model_images_and_evaluate(model,dataFolder,numImages=None) :
     
     predicted = model.predict(im,batch_size=10);
 
-    return predicted,im,label;
+    return predicted,im,label,image_files;
 
 
 # load/create  a model, evaluate using a dataset and return  top k  and bottom k results and model object
 # Return : topResults: model : Newly created/loaded Model object
 #          topResults:  ndarray with three images ( image number along last axis)- input image, label and predicted result which gives best result for the model
-def evaluate_top_and_bottom_k(model,dataFolder,numImages=None) :
-    predicted,im,label = load_model_images_and_evaluate(model,dataFolder,numImages);
+def evaluate_top_and_bottom_k(model,dataFolder,numImages=None,k = 1) :
+    predicted,im,label,image_files = load_model_images_and_evaluate(model,dataFolder,numImages);
     print 'Predicted Results Shape:' + str(predicted.shape);
     mse = find_mse(label,predicted);
     sortedIndices = np.argsort(mse);
+    topResults = np.zeros((k,400,200,3));
+    bottomResults = np.zeros((k,400,200,3));
 
-    topImage =  im[sortedIndices[0]];
-    topLabel =  label[sortedIndices[0]];
-    topPredicted = predicted[0];
-    topResults = np.concatenate( (topImage, topLabel,topPredicted),axis = 2);
-    bottomImage = im[sortedIndices[sortedIndices.size - 1]];
-    bottomLabel = label[sortedIndices[sortedIndices.size - 1]];
-    bottomPredicted = predicted[sortedIndices[sortedIndices.size - 1]];
-    bottomResults = np.concatenate( (bottomImage, bottomLabel,bottomPredicted),axis = 2);
+    for index in range(k) :
+        i =  im[sortedIndices[index]];
+        l =  label[sortedIndices[index]];
+        p = predicted[index];
+        topResults[index,:,:,:] = np.concatenate( (i, l,p),axis = 2);
+
+    for index in range(k) :
+        i = im[sortedIndices[sortedIndices.size - 1 - index]];
+        l = label[sortedIndices[sortedIndices.size - 1 - index]];
+        p = predicted[sortedIndices[sortedIndices.size - 1 - index]];
+        bottomResults[index,:,:,:] = np.concatenate( (i,l,p),axis = 2);
+
     return topResults,bottomResults,im,label;
 
 

@@ -6,7 +6,6 @@ import lib_evaluate as e;
 import argparse;
 import os;
 import numpy as np;
-#import numpy.ma as ma;
 import theano;
 
 from keras.models import Sequential;
@@ -20,16 +19,11 @@ from keras.utils.visualize_util import model_to_dot;
 from keras import backend;
 
 
-#plotting modules
-import matplotlib.cm as cm;
-import matplotlib.pyplot as plt;
-
-
 """ 
     Author: Sunil Kumar Vengalil
     USAGE EXAMPLE
-        python visualize_results.py -load_path <Path where model is located> 
-        python visualize_results.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data_prev\Model
+        python separate_outlier.py -load_path <Path where model is located> 
+        python separate_outlier.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data_prev\Model
 
     Reference links used:
     https://github.com/fchollet/keras/issues/431
@@ -39,7 +33,7 @@ import matplotlib.pyplot as plt;
 """
 
 
-parser = argparse.ArgumentParser(description='Visualize results and label');
+parser = argparse.ArgumentParser(description='Identify  k images with largest error using a given model ');
 parser.add_argument('-load_path', type=str,
                    help='Loads the initial model structure and weights from this location');
 parser.add_argument('-debug', action='store_true', default=0,
@@ -57,6 +51,7 @@ def main():
     #load/create model
     dataFolder = os.getcwd() + '/data_prev';
     modelFolder = dataFolder+'/latestModel';
+    k = 150;
 
     if hasattr(args, 'load_path') and args.load_path is not None:
         print("Loading Model from: " + args.load_path);
@@ -71,43 +66,46 @@ def main():
         sgd = opt.SGD(lr=0.0001, decay=0.0005, momentum=0.9, nesterov=True);
         model.compile(loss='mean_squared_error', optimizer='sgd');
 
-    
-    topResults,bottomResults,im,label = e.evaluate_top_and_bottom_k(model,dataFolder,400,1);
 
-
-    #Display image, label and predicted output for the image with highest error
-    top1Fig = plt.figure(1,figsize=(15,8));
-    plt.title('Input Image',loc='left');
-    plt.title('Actual Label',loc='center');
-    plt.title('Predicted Label',loc='right');
-    plt.axis('off');
-    
-    disp_images(top1Fig,topResults[0,:,:,:],1,3,pad = 1,cmap = cm.binary);
-
+    predicted,im,label,image_files = e.load_model_images_and_evaluate(model,dataFolder);
+    print 'Predicted Results Shape:' + str(predicted.shape);
+    mse = find_mse(label,predicted);
+    sortedIndices = np.argsort(mse);
     #save the results figure
-    resultsFolderName = modelFolder + '/results';
-    if not os.path.exists(resultsFolderName) :
-       create_results_folder(resultsFolderName)
-       
-    resultFigFileName = resultsFolderName + '/' + 'top1'+'.png';
-    plt.savefig(resultFigFileName);
-
-
-    #Display image, label and predicted output for the image with lowest error
-    bottom1Fig = plt.figure(2,figsize=(15,8));
-    plt.title('Input Image',loc='left');
-    plt.title('Actual Label',loc='center');
-    plt.title('Predicted Label',loc='right');
-    plt.axis('off');
-
-
-    disp_images(bottom1Fig,bottomResults[0,:,:,:],1,3,pad = 1, cmap = cm.binary);
-
-    #save the results figure
-    resultFigFileName = resultsFolderName + '/' + 'bottom1'+'.png';
-    plt.savefig(resultFigFileName);
-
-    plt.show();
+    modelFolder;
+    if not os.path.exists(modelFolder) :
+       create_results_folder(modelFolder)
+      
+    #save predicted images for topk and bottomk
+    topkFolderName = modelFolder + '/topk_predicted';
+    if not os.path.exists(topkFolderName) :
+        create_results_folder(topkFolderName);
+    topkIndices = sortedIndices[sortedIndices.size-k:sortedIndices.size ];
+    print topkIndices;
     
+    lm.save_results(predicted,image_files,topkIndices,'topk_predicted' );
+    
+    bottomkFolderName = dataFolder + '/bottomk_predicted';
+    if not os.path.exists(bottomkFolderName) :
+       create_results_folder(bottomkFolderName)
+
+    lm.save_results(predicted,image_files,sortedIndices[0:k-1 ],'bottomk_predicted' );
+
+    #save predicted images for topk and bottomk
+    
+    topkFolderName = dataFolder + '/topk_im';
+    if not os.path.exists(topkFolderName) :
+        create_results_folder(topkFolderName);
+    topkIndices = sortedIndices[sortedIndices.size-k:sortedIndices.size ];
+    print topkIndices;
+    
+    lm.save_results(im,image_files,topkIndices,'topk_im' );
+    
+    bottomkFolderName = dataFolder + '/bottomk_im';
+    if not os.path.exists(bottomkFolderName) :
+       create_results_folder(bottomkFolderName)
+
+    lm.save_results(im,image_files,sortedIndices[0:k-1 ],'bottomk_im' );
+
 main()
 
