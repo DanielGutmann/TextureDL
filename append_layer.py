@@ -27,7 +27,7 @@ import lib_evaluate as e;
 """
 
 
-parser = argparse.ArgumentParser(description='Compress a model by removing filters which does not much value')
+parser = argparse.ArgumentParser(description='Append one more layer prior to the final 1 X 1 conv layer and retrain')
 parser.add_argument('-load_path', type=str,
                    help='Loads the initial model structure and weights from this location')
 parser.add_argument('-debug', action='store_true', default=0,
@@ -113,14 +113,12 @@ def main():
     print 'Number of Layers:' + str(numberOfLayer)
     convType = (Convolution2D);
     for i in range(0, numberOfLayer -1) :
-        #if(isinstance(type(model.layers[i]),convType)): # TODO review with prof Raghavan why not working
+        #if(isinstance(type(model.layers[i]),convType)): # TODO review why not working
         #if(isinstance(type(model.layers[i]),Convolution2D)) :
         if('Convolution2D' in str(type(  model.layers[i] )  ) ) :
             print('Copying weights');
             copy_weights(model,appendedModel,i);
-        else : 
-            print( type(model.layers[i]));
-
+ 
            
     topResults,bottomResults,im,label  = e.load_images_and_evaluate1(appendedModel,args,dataFolder);
 
@@ -142,7 +140,7 @@ def main():
     # Save converted model weights
     #model.save('/home/ubuntu/TextureDL/output/Keras_model_weights.h5', overwrite=True)
     #model.save('/home/ubuntu/Git/TextureDL/data_prev/latestModel/Keras_model_weights.h5', overwrite=True)
-    model.save('/home/ubuntu/Git/TextureDL/data_prev/latestModel/Keras_model_weights.h5', overwrite=True)
+    appendedModel.save('/home/ubuntu/Git/TextureDL/data600/latestModel/Keras_model_weights.h5', overwrite=True)
     #print("Finished storing the converted model to "+ store_path)
 
     
