@@ -23,7 +23,7 @@ import lib_evaluate as e;
     USAGE EXAMPLE
         python append_layer.py -load_path <Path where model is located> 
         python append_layer.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data_prev\Model
-	python append_layer.py -load_path /home/ubuntu/github/TextureDL/data_prev/Model
+    TODO save results after every 10 epochs
 """
 
 
@@ -131,18 +131,16 @@ def main():
     print lossesForOriginalModel;
     
 
-    #load images
-    h = appendedModel.fit(im,label,batch_size=100,nb_epoch=50);
-    # Save converted model structure
-    print("Storing model...")
-    #json_string = model.to_json()
-    #open('C:\\TextureDL\\output\\Keras_model_structure.json', 'w').write(json_string)
-    # Save converted model weights
-    #model.save('/home/ubuntu/TextureDL/output/Keras_model_weights.h5', overwrite=True)
-    #model.save('/home/ubuntu/Git/TextureDL/data_prev/latestModel/Keras_model_weights.h5', overwrite=True)
-    appendedModel.save('/home/ubuntu/github/TextureDL/data600/latestModel/Keras_model_weights.h5', overwrite=True)
-    #print("Finished storing the converted model to "+ store_path)
-
+    #start training
+    nb_epoch = 50;
+    store_model_interval_in_epochs = 10;
+    model_file_prefix = 'Keras_model_weights';
+    store_model_path = '/home/ubuntu/Git/TextureDL/data600/latestModel/';
+    for iter in range(nb_epoch)
+        h = appendedModel.fit(im,label,batch_size=100,nb_epoch=store_model_interval_in_epochs);
+        print("Storing model...");
+        fileName = model_file_prefix +'_' + str(iter)+'.h5'
+        appendedModel.save(store_model_path +fileName, overwrite=True);
     
     
 main()
