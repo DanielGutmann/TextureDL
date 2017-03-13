@@ -23,7 +23,7 @@ import lib_evaluate as e;
     USAGE EXAMPLE
         python append_layer.py -load_path <Path where model is located> 
         python append_layer.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data_prev\Model
-    TODO automate the process of selecting filters that can be pruned
+	python append_layer.py -load_path /home/ubuntu/github/TextureDL/data_prev/Model
 """
 
 
@@ -140,7 +140,7 @@ def main():
     # Save converted model weights
     #model.save('/home/ubuntu/TextureDL/output/Keras_model_weights.h5', overwrite=True)
     #model.save('/home/ubuntu/Git/TextureDL/data_prev/latestModel/Keras_model_weights.h5', overwrite=True)
-    appendedModel.save('/home/ubuntu/Git/TextureDL/data600/latestModel/Keras_model_weights.h5', overwrite=True)
+    appendedModel.save('/home/ubuntu/github/TextureDL/data600/latestModel/Keras_model_weights.h5', overwrite=True)
     #print("Finished storing the converted model to "+ store_path)
 
     
