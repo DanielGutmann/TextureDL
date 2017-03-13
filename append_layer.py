@@ -23,6 +23,8 @@ import lib_evaluate as e;
     USAGE EXAMPLE
         python append_layer.py -load_path <Path where model is located> 
         python append_layer.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data_prev\Model
+        python append_layer.py -load_path /home/ubuntu/github/TextureDL/data_prev/Model
+
     TODO save results after every 10 epochs
 """
 
@@ -132,16 +134,18 @@ def main():
     
 
     #start training
-    nb_epoch = 50;
-    store_model_interval_in_epochs = 10;
+    nb_epoch = 10;
+    store_model_interval_in_epochs = 3;
     model_file_prefix = 'Keras_model_weights';
-    store_model_path = '/home/ubuntu/Git/TextureDL/data600/latestModel/';
-    for iter in range(nb_epoch)
+    store_model_path = modelFolder;
+    steps = nb_epoch/store_model_interval_in_epochs;
+    for iter in range(steps) :
         h = appendedModel.fit(im,label,batch_size=100,nb_epoch=store_model_interval_in_epochs);
         print("Storing model...");
         fileName = model_file_prefix +'_' + str(iter)+'.h5'
         appendedModel.save(store_model_path +fileName, overwrite=True);
     
+    appendedModel.save(store_model_path +fileName, overwrite=True);
     
 main()
 
