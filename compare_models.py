@@ -49,6 +49,16 @@ parser.add_argument('-debug', action='store_true', default=0,
 		   help='use debug mode');
 args = parser.parse_args();
 
+def parseClassName(className) : # TODO check if there is any built in way of doing this in python
+    typeName =  (className.split(" ")[1] ).split(".");
+    typename1 = typeName[ len(typeName)  - 1];
+    return  typename1.replace("'>",'') ;
+
+def compare_layers(layer1, layer2) :
+    if np.array_equal(layer1.weights[0], layer2.weights[0]) :
+        if np.array_equal(layer1.weights[1],layer2.weights[1]) :
+            return 'identical';
+    return 'different';
 def create_results_folder(path):
     try:
         os.mkdir(path);
@@ -59,13 +69,12 @@ def main():
 
 
     dataFolder = os.getcwd() + '/data_prev';
-    modelFolder = dataFolder+'/latestModel';
-
+ 
     #load first model
     if hasattr(args, 'model1_path') and args.model1_path is not None:
         print("Loading Model from: " + args.model1_path);
         model1Folder = args.model1_path; 
-        fileName =  modelFolder  +'/Keras_model_weights.h5';
+        fileName =  model1Folder  +'/Keras_model_weights.h5';
         model1 = e.load_model(fileName);
         print("Model Loaded");
     else:
@@ -92,9 +101,39 @@ def main():
 
     
     #compare model1 and model2 and summarize
-    print('\t\t\t'+'Model1'+'\t'+'Model2');
-    print('Number of Layers\t' + str( len(model1.layers)) +'\t' + str( len(model2.layers)));
-        
+    print('\t\t\t'+'Model1'+'\t\t\t\t'+'Model2');
+    print('Number of Layers\t' + str( len(model1.layers)) +'\t\t\t\t' + str( len(model2.layers)));
+    maxLayers = len(model1.layers);
+    model = model1;
+    if len(model2.layers) > maxLayers:
+        maxLayers = len(model2.layers);
+        model = model2;
+
+    for i in range(maxLayers) :
+        #if(isinstance(type(model.layers[i]),convType)): # TODO review why not working
+        #if(isinstance(type(model.layers[i]),Convolution2D)) :
+        s = 'Layer_' + str(i) + '\t\t\t';
+        layerType1  = None;
+        layerType2  = None;
+        if(i < len(model1.layers)) :
+            layerType1 = parseClassName( str( type( model1.layers[i])  ) )
+            s = s +  layerType1
+        else:
+            s = s + '----';
+        s = s + '\t\t\t';
+
+        if(i < len(model2.layers)) :
+            layerType2 = parseClassName( str( type( model1.layers[i])  ) ); 
+            s = s +  parseClassName( str( type( model1.layers[i])  ) );
+        else:
+            s = s + '----';
+
+        if (layerType1 is  not None ) & (layerType2 is not None) & (layerType1 == layerType2  ) :
+            if layerType1 == 'Convolution2D' :
+                s  = s + '\t\t' + compare_layers( model1.layers[i], model1.layers[i]);
+            
+        print(s);
+
     
 main()
 
