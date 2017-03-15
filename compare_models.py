@@ -88,7 +88,7 @@ def main():
     if hasattr(args, 'model2_path') and args.model2_path is not None:
         print("Loading Model from: " + args.model2_path);
         model2Folder = args.model2_path; 
-        fileName =  model2Folder  +'/Keras_model_weights.h5';
+        fileName =  model2Folder  +'/Appended_model_weights.h5';
         model2 = e.load_model(fileName);
         print("Model Loaded");
     else:
@@ -123,15 +123,14 @@ def main():
         s = s + '\t\t\t';
 
         if(i < len(model2.layers)) :
-            layerType2 = parseClassName( str( type( model1.layers[i])  ) ); 
-            s = s +  parseClassName( str( type( model1.layers[i])  ) );
+            layerType2 = parseClassName( str( type( model2.layers[i])  ) ); 
+            s = s +  parseClassName( str( type( model2.layers[i])  ) );
         else:
             s = s + '----';
 
         if (layerType1 is  not None ) & (layerType2 is not None) & (layerType1 == layerType2  ) :
             if layerType1 == 'Convolution2D' :
                 s  = s + '\t\t' + compare_layers( model1.layers[i], model1.layers[i]);
-            
         print(s);
 
     
