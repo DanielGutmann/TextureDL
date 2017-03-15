@@ -134,9 +134,9 @@ def main():
     
 
     #start training
-    nb_epoch = 10;
-    store_model_interval_in_epochs = 3;
-    model_file_prefix = 'Keras_model_weights';
+    nb_epoch = 50;
+    store_model_interval_in_epochs = 10;
+    model_file_prefix = 'Appended_model_weights';
     store_model_path = modelFolder;
     steps = nb_epoch/store_model_interval_in_epochs;
     for iter in range(steps) :
