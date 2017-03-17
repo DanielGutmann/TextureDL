@@ -10,7 +10,6 @@ from keras.layers import MaxPooling2D;
 
 import lib_evaluate as e;
 
-
 """ 
 
     USAGE EXAMPLE
@@ -18,39 +17,9 @@ import lib_evaluate as e;
 
 """
 
-def create_model_seg():
-    model = Sequential()
-    model.add(ZeroPadding2D((1,1),input_shape=(400,200,1)))
-    model.add(Convolution2D(10, 3, 3, dim_ordering='tf' ,activation='relu'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(Convolution2D(10, 3, 3,dim_ordering='tf', activation='relu'))
-    model.add(ZeroPadding2D((1,1)))
-    model.add(MaxPooling2D((3,3), strides=(1,1),dim_ordering='tf'))
-
-    #model.add(ZeroPadding2D((1,1)))
-    #model.add(Convolution2D(128, 3, 3, dim_ordering='tf', activation='relu'))
-    #model.add(ZeroPadding2D((1,1)))
-    #model.add(Convolution2D(128, 3, 3,dim_ordering='tf', activation='relu'))
-    #model.add(MaxPooling2D((3,3),strides=(1,1),dim_ordering='th' ))
-
-   # model.add(ZeroPadding2D((1,1)))
-    #model.add(Convolution2D(10, 3, 3,dim_ordering='tf', activation='relu'))
-   # model.add(ZeroPadding2D((1,1)))
-   # model.add(Convolution2D(10, 3, 3, dim_ordering='tf',activation='relu'))
-    #model.add(ZeroPadding2D((1,1)))
-    #model.add(Convolution2D(10, 3, 3, dim_ordering='tf',activation='relu'))
-    #model.add(ZeroPadding2D((1,1)))
-    #model.add( MaxPooling2D( (3,3),strides=(1,1),dim_ordering='tf' ));
-
-    model.add( Convolution2D(1,1,1,init='normal',dim_ordering='tf') );
-    
-
-    return model
-
-
 
 def main():
-    parser = argparse.ArgumentParser(description='Append one more layer prior to the final 1 X 1 conv layer and retrain')
+    parser = argparse.ArgumentParser(description='Train a model')
     parser.add_argument('-load_path', type=str,
                    help='Loads the initial model structure and weights from this location')
     parser.add_argument('-debug', action='store_true', default=0,
@@ -60,6 +29,7 @@ def main():
     dataFolder = os.getcwd() + '/data600';
     modelFolder = dataFolder+'/Model';
     args = parser.parse_args();
+    kernel_size = 5;
     if hasattr(args, 'load_path') and args.load_path is not None:
         print("Loading Model from: " + args.load_path);
         modelFolder = args.load_path;
@@ -68,9 +38,9 @@ def main():
         print("Model Loaded");
     else:
         print("Creating new model");
-        model = e.create_model_seg();
+        model = e.create_model_seg(kernel_size= kernel_size);
         #set training parameters
-        sgd = opt.SGD(lr=0.00001, decay=0.0005, momentum=0.9, nesterov=True);
+        sgd = opt.SGD(lr=0.000001, decay=0.0005, momentum=0.9, nesterov=True);
         model.compile(loss='mean_squared_error', optimizer='sgd');
 
 
@@ -81,15 +51,10 @@ def main():
     sgd = opt.SGD(lr=0.000001, decay=0.0005, momentum=0.9, nesterov=True);
     model.compile(loss='mean_squared_error', optimizer='sgd');
 
-
-
-    predicted,im,label,image_files = e.load_model_images_and_evaluate(model,dataFolder);
-
-
     #start training
     nb_epoch = 100;
     store_model_interval_in_epochs = 10;
-    model_file_prefix = 'Keras_model_weights';
+    model_file_prefix = 'm_layer_'+str() +'kernel_'+str(kernel_size)+'iter_';
     store_model_path = modelFolder+'/';
     steps = nb_epoch/store_model_interval_in_epochs;
     for iter in range(steps) :
@@ -100,7 +65,6 @@ def main():
 
     model.save(store_model_path +fileName, overwrite=True);
 
-    
 
 main()
 
