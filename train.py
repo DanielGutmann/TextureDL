@@ -30,6 +30,7 @@ def main():
     modelFolder = dataFolder+'/Model';
     args = parser.parse_args();
     kernel_size = 5;
+    nb_layer = 7;
     if hasattr(args, 'load_path') and args.load_path is not None:
         print("Loading Model from: " + args.load_path);
         modelFolder = args.load_path;
@@ -38,7 +39,7 @@ def main():
         print("Model Loaded");
     else:
         print("Creating new model");
-        model = e.create_model_seg(kernel_size= kernel_size);
+        model = e.create_model_seg(numLayers= nb_layer,kernel_size= kernel_size);
         #set training parameters
         sgd = opt.SGD(lr=0.000001, decay=0.0005, momentum=0.9, nesterov=True);
         model.compile(loss='mean_squared_error', optimizer='sgd');
@@ -52,9 +53,9 @@ def main():
     model.compile(loss='mean_squared_error', optimizer='sgd');
 
     #start training
-    nb_epoch = 100;
-    store_model_interval_in_epochs = 10;
-    model_file_prefix = 'm_layer_'+str() +'kernel_'+str(kernel_size)+'iter_';
+    nb_epoch = 4;
+    store_model_interval_in_epochs = 2;
+    model_file_prefix = 'm_layer_'+str(nb_layer) +'kernel_'+str(kernel_size)+'iter_';
     store_model_path = modelFolder+'/';
     steps = nb_epoch/store_model_interval_in_epochs;
     for iter in range(steps) :
