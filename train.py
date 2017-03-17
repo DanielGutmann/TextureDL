@@ -14,6 +14,7 @@ import lib_evaluate as e;
 
     USAGE EXAMPLE
         python train.py 
+        python train.py -load_path /home/ubuntu/github/TextureDL/data600/Model/m_layer_7kernel_5iter__9.h5
 
 """
 
@@ -33,8 +34,7 @@ def main():
     nb_layer = 7;
     if hasattr(args, 'load_path') and args.load_path is not None:
         print("Loading Model from: " + args.load_path);
-        modelFolder = args.load_path;
-        fileName =  modelFolder  +'/Keras_model_weights.h5';
+        fileName = args.load_path;
         model = e.load_model(fileName);
         print("Model Loaded");
     else:
@@ -53,12 +53,12 @@ def main():
     model.compile(loss='mean_squared_error', optimizer='sgd');
 
     #start training
-    nb_epoch = 4;
-    store_model_interval_in_epochs = 2;
+    nb_epoch = 100;
+    store_model_interval_in_epochs = 10;
     model_file_prefix = 'm_layer_'+str(nb_layer) +'kernel_'+str(kernel_size)+'iter_';
     store_model_path = modelFolder+'/';
     steps = nb_epoch/store_model_interval_in_epochs;
-    for iter in range(steps) :
+    for iter in range(10,20,1) :
         h = model.fit(im,label,batch_size=100,nb_epoch=store_model_interval_in_epochs);
         print("Storing model...");
         fileName = model_file_prefix +'_' + str(iter)+'.h5'
