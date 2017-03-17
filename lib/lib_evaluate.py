@@ -21,18 +21,26 @@ from lib_metrics import find_mse;
 """
 
 MIN_LAYERS = 7;
+DEFAULT_KERNEL_SIZE = 3;
 #Create a new model  for image segmentation with randomly initialized weights
-def create_model_seg(numLayers = MIN_LAYERS):
+def create_model_seg(numLayers = MIN_LAYERS,kernel_size = DEFAULT_KERNEL_SIZE):
     if numLayers  < MIN_LAYERS :
         raise Exception('Needs at least 7 layers');
     if numLayers % 2 == 0 :
         raise Exception('Total number of layers should be odd');
-    
+
+    if kernel_size  < DEFAULT_KERNEL_SIZE :
+        raise Exception('Needs at least' + str(DEFAULT_KERNEL_SIZE)+' layers');
+    if kernel_size % 2 == 0 :
+        raise Exception('Total number of layers should be odd');
+
+
+    zeropadding = kernel_size // 2; 
     model = Sequential();
-    model.add(ZeroPadding2D((1,1),input_shape=(400,200,1)));
-    model.add(Convolution2D(10, 3, 3, dim_ordering='tf' ,activation='relu'));
-    model.add(ZeroPadding2D((1,1)));
-    model.add(Convolution2D(10, 3, 3,dim_ordering='tf', activation='relu'));
+    model.add(ZeroPadding2D((zeropadding,zeropadding),input_shape=(400,200,1)));
+    model.add(Convolution2D(10, kernel_size, kernel_size, dim_ordering='tf' ,activation='relu'));
+    model.add(ZeroPadding2D((zeropadding,zeropadding)));
+    model.add(Convolution2D(10, kernel_size, kernel_size,dim_ordering='tf', activation='relu'));
     
     for i in range( (numLayers - MIN_LAYERS ) / 2) :
         model.add(ZeroPadding2D((1,1)));
