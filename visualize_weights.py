@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt;
     Author: Sunil Kumar Vengalil
     USAGE EXAMPLE
         python visualize_weights.py -load_path <Path where model is located> 
-        python visualize_weights.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data_prev\Model
+        python visualize_weights.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data600\Model\m_layer_7kernel_5iter__13.h5
 
     Reference links used:
     https://github.com/fchollet/keras/issues/431
@@ -106,13 +106,29 @@ def make_mosaic(imgs, nrows, ncols):
 
 
 def main():
-
     #load/create model
-    dataFolder = os.getcwd() + '/data_prev';
-    model,topResults,bottomResults,im,label = e.load_model_images_and_evaluate(args,dataFolder,20)
+    dataFolder = os.getcwd() + '/data600';
+    modelFolder = dataFolder+'/Model';
+
+    if hasattr(args, 'load_path') and args.load_path is not None:
+        print("Loading Model from: " + args.load_path);
+        fileName = args.load_path; 
+        model = e.load_model(fileName);
+        print("Model Loaded");
+    else:
+        print("Creating new model");
+        model = e.create_model_seg();
+        #set training parameters 
+        sgd = opt.SGD(lr=0.0001, decay=0.0005, momentum=0.9, nesterov=True);
+        model.compile(loss='mean_squared_error', optimizer='sgd');
+
+    
+    predicted,im,label,image_files = e.load_model_images_and_evaluate(model,dataFolder,5);
+
+    
  
     # plot the model weights
-    layer = 3;
+    layer = 1;
 
     #W = model.layers[layer].W.get_value(borrow=True);
     #W = np.squeeze(W)
@@ -133,7 +149,7 @@ def main():
         
     nice_imshow(pl.gca(), make_mosaic(weights, 10,10), cmap=cm.binary);
     figFileName = args.load_path + '/' + 'layer_'+str(layer)+'.png';
-    pl.savefig(figFileName);
+    #pl.savefig(figFileName);
 
 
     freq,values = np.histogram(weights,bins=1000);
