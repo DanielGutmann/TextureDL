@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt;
     Author: Sunil Kumar Vengalil
     USAGE EXAMPLE
         python view_intermediate_results.py -load_path <Path where model is located> 
-        python view_intermediate_results.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data_prev\Model
+        python view_intermediate_results.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data600\Model\m_layer_7kernel_5iter__13.h5
             
 """
 
@@ -50,8 +50,23 @@ def create_results_folder(path):
 def main():
 
     #load/create model
-    dataFolder = os.getcwd() + '/data_prev';
-    model,topResults,bottomResults,im,label = e.load_model_images_and_evaluate(args,dataFolder);
+    dataFolder = os.getcwd() + '/data600';
+    modelFolder = dataFolder+'/Model';
+
+    if hasattr(args, 'load_path') and args.load_path is not None:
+        print("Loading Model from: " + args.load_path);
+        fileName = args.load_path; 
+        model = e.load_model(fileName);
+        print("Model Loaded");
+    else:
+        print("Creating new model");
+        model = e.create_model_seg();
+        #set training parameters 
+        sgd = opt.SGD(lr=0.0001, decay=0.0005, momentum=0.9, nesterov=True);
+        model.compile(loss='mean_squared_error', optimizer='sgd');
+
+    
+    predicted,im,label,image_files = e.load_model_images_and_evaluate(model,dataFolder,5);
     
     #Display image, and output of first layer
 
@@ -65,7 +80,7 @@ def main():
         return _convout1_f( [0] + [X] )
 
     imagesToVisualize1 = np.zeros([1,400,200,1]); 
-    imagesToVisualize1[0,:,:,0] = np.squeeze( topResults[:,:,0] );
+    imagesToVisualize1[0,:,:,0] = np.squeeze( im[0,:,:] );
 
     convout1 = np.squeeze(convout1_f(imagesToVisualize1));
     print 'Output shape of layer ' +str(layer)+ ':' +str(convout1.shape);
@@ -98,22 +113,22 @@ def main():
     plt.title('Output of layer ' +str(layer), loc='center');
     plt.axis('off');
     plt.tight_layout();
-    disp_single_image_results(layer1Fig,topResults, np.squeeze(imagesToVisualize),2, 5,pad = 0.8, cmap = cm.binary);
+    disp_single_image_results(layer1Fig,im[0,:,:], np.squeeze(imagesToVisualize),2, 5,pad = 0.8, cmap = cm.binary);
 
     #save the results figure
-    resultsFolderName = dataFolder + '/results';
-    if not os.path.exists(resultsFolderName) :
-       create_results_folder(resultsFolderName)
+    #resultsFolderName = dataFolder + '/results';
+    #if not os.path.exists(resultsFolderName) :
+    #   create_results_folder(resultsFolderName)
        
-    resultFigFileName = resultsFolderName + '/' + 'layer1_output'+'.png';
-    plt.savefig(resultFigFileName);
+    #resultFigFileName = resultsFolderName + '/' + 'layer1_output'+'.png';
+    #plt.savefig(resultFigFileName);
 
     imageFig = plt.figure(2,(15,8));
     plt.title("Input Image");
     plt.axis('off');
     plt.tight_layout();
-    print('Shape of input image:' + str(topResults[:,:,0].shape));
-    plt.imshow(topResults[:,:,0],cmap = cm.binary);
+    print('Shape of input image:' + str( im[0,:,:].shape));
+    plt.imshow(np.squeeze(im[0,:,:]),cmap = cm.binary);
     
 
     plt.show();
