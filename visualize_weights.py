@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt;
     Author: Sunil Kumar Vengalil
     USAGE EXAMPLE
         python visualize_weights.py -load_path <Path where model is located> 
-        python visualize_weights.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data600\Model\m_layer_7kernel_5iter__13.h5
+        python visualize_weights.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data600\Model\m_layer_7kernel_5iter__19.h5
 
     Reference links used:
     https://github.com/fchollet/keras/issues/431
@@ -45,10 +45,6 @@ import matplotlib.pyplot as plt;
 parser = argparse.ArgumentParser(description='Visualize a model weights');
 parser.add_argument('-load_path', type=str,
                    help='Loads the initial model structure and weights from this location');
-parser.add_argument('-weights', type=str,
-                   help='name of the weight file');
-parser.add_argument('-store_path', type=str, default='',
-                   help='path to the folder where the Keras model will be stored (default: -load_path).');
 parser.add_argument('-debug', action='store_true', default=0,
 		   help='use debug mode');
 
@@ -123,7 +119,7 @@ def main():
         model.compile(loss='mean_squared_error', optimizer='sgd');
 
     
-    predicted,im,label,image_files = e.load_model_images_and_evaluate(model,dataFolder,5);
+    predicted,im,label,image_files = e.load_model_images_and_evaluate(model= model,dataFolderPath= dataFolder,numImages=5);
 
     
  
@@ -142,6 +138,19 @@ def main():
 
     print("bias Shape : ", bias.shape);
     print("bias Dimension : ", len(bias.shape));
+
+    wfile = open('weights.txt','w');
+
+    for i in range(weights.shape[3]):
+        print >> wfile, 'Filter-' + str(i);
+        for j in range(weights.shape[0]):
+            for k in range(weights.shape[1]) :
+                print >> wfile, weights[j,k,0,i];
+            print >> wfile, '\r\n';
+
+    wfile.close();
+            
+    
     
 
     pl.figure(1,figsize=(15, 15));

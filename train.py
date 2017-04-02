@@ -28,10 +28,12 @@ def main():
 
     
     dataFolder = os.getcwd() + '/data600';
-    modelFolder = dataFolder+'/Model';
+    #dataFolder = os.getcwd() + '/data10';
+    modelFolder = dataFolder+'/localModel';
     args = parser.parse_args();
-    kernel_size = 5;
+    kernel_size = 3;
     nb_layer = 7;
+    nb_filter= [5,5];
     if hasattr(args, 'load_path') and args.load_path is not None:
         print("Loading Model from: " + args.load_path);
         fileName = args.load_path;
@@ -42,24 +44,25 @@ def main():
         model = e.create_model_seg(numLayers= nb_layer,kernel_size= kernel_size);
         #set training parameters
         sgd = opt.SGD(lr=0.000001, decay=0.0005, momentum=0.9, nesterov=True);
-        model.compile(loss='mean_squared_error', optimizer='sgd');
+        model.compile(loss='mean_squared_error', optimizer=sgd);
 
 
     predicted,im,label,image_files = e.load_model_images_and_evaluate(model,dataFolder);
 
 
     #start training
-    sgd = opt.SGD(lr=0.000001, decay=0.0005, momentum=0.9, nesterov=True);
-    model.compile(loss='mean_squared_error', optimizer='sgd');
+    sgd = opt.SGD(lr=0.00000001, decay=0.0005, momentum=0.9, nesterov=True);
+    model.compile(loss='mean_squared_error', optimizer=sgd);
 
     #start training
-    nb_epoch = 100;
-    store_model_interval_in_epochs = 10;
+    batchsize=10
+    nb_epoch = 10;
+    store_model_interval_in_epochs = 2;
     model_file_prefix = 'm_layer_'+str(nb_layer) +'kernel_'+str(kernel_size)+'iter_';
     store_model_path = modelFolder+'/';
     steps = nb_epoch/store_model_interval_in_epochs;
     for iter in range(10,20,1) :
-        h = model.fit(im,label,batch_size=100,nb_epoch=store_model_interval_in_epochs);
+        h = model.fit(im,label,batch_size=batchsize,nb_epoch=store_model_interval_in_epochs);
         print("Storing model...");
         fileName = model_file_prefix +'_' + str(iter)+'.h5'
         model.save(store_model_path +fileName, overwrite=True);

@@ -16,29 +16,42 @@ import errno;
 
 
 #load jpg image files from the subdirectory named im under rootFolderName
-def load_im(rootFolderName):
-    fileName = rootFolderName + "/im/*.jpg";
+def load_im(rootFolderName,imFolderName= 'im'):
+    fileName = rootFolderName + "/"+imFolderName+"/*.jpg";
     print 'load_im:Loading images from:'+fileName;
-    n = len(glob.glob(fileName));
+    files = glob.glob(fileName);
+    n = len(files);
     images = [];
     print('load_im: Number of images=' + str(n) )
-    cv_img = np.empty([n,400,200,1]);
     im_count = 0;
-    for img in glob.glob(fileName):
-        cv_img[im_count,:,:,0] =ndimage.imread(img)
-        im_count = im_count + 1;
-        images.append(img);
+    if len(files) > 0:
+        image_shape = ndimage.imread( files[0]).shape;
+        if len(image_shape) == 2:
+            cv_img = np.empty( [n,image_shape[0],image_shape[1],1] );
+        else :
+            cv_img = np.empty([n,image_shape[0],image_shape[1],image_shape[2]]);
+        for img in files:
+            im = ndimage.imread(img);
+            if(len(im.shape) == 2) :
+                im = np.expand_dims(im,axis=2);
+            cv_img[im_count,:,:,:] = im;
+            im_count = im_count + 1;
+            images.append(img);
+
     if im_count == 0:
 	    raise Exception("No Images loaded");
 
     return images,cv_img;
         
 # loads labels for the set of images
-def load_label(images):
-    cv_img = np.empty([len(images),400,200,1]);
+def load_label(images,dataFolder = 'im',labelFolder='label'):
+    
     im_count = 0;
+    labelFile = images[0].replace(dataFolder,labelFolder,1);
+    labelShape = ndimage.imread(labelFile).shape;
+    cv_img = np.empty([len(images),labelShape[0],labelShape[1],1 ]);
     for img in images:
-        img = img.replace('im','label',1);
+        img = img.replace(dataFolder,labelFolder,1);
         cv_img[im_count,:,:,0] = ndimage.imread(img);
         im_count = im_count + 1;
     if im_count != len(images):

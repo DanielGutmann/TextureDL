@@ -27,9 +27,12 @@ import matplotlib.pyplot as plt;
 
 """ 
     Author: Sunil Kumar Vengalil
+    Displays image, label and predicted output  for the following two input images using the model specified
+    1. The image that gives the best result for this model among the set of images
+    2. The image that gives the worst result for this model among the set of images
     USAGE EXAMPLE
         python visualize_results.py -load_path <Path where model is located> 
-        python visualize_results.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data_prev\Model
+        python visualize_results.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data600\Model\m_layer_7kernel_5iter__10.h5
 
     Reference links used:
     https://github.com/fchollet/keras/issues/431
@@ -55,13 +58,12 @@ def create_results_folder(path):
 def main():
 
     #load/create model
-    dataFolder = os.getcwd() + '/data_prev';
-    modelFolder = dataFolder+'/latestModel';
+    dataFolder = os.getcwd() + '/data600';
+    modelFolder = dataFolder+'/Model';
 
     if hasattr(args, 'load_path') and args.load_path is not None:
         print("Loading Model from: " + args.load_path);
-        modelFolder = args.load_path; 
-        fileName =  modelFolder  +'/Keras_model_weights.h5';
+        fileName = args.load_path; 
         model = e.load_model(fileName);
         print("Model Loaded");
     else:
@@ -72,7 +74,7 @@ def main():
         model.compile(loss='mean_squared_error', optimizer='sgd');
 
     
-    topResults,bottomResults,im,label = e.evaluate_top_and_bottom_k(model,dataFolder,400,1);
+    topResults,bottomResults,im,label = e.evaluate_top_and_bottom_k(model=model,dataFolderPath=dataFolder,k=1);
 
 
     #Display image, label and predicted output for the image with highest error
