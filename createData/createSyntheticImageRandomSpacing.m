@@ -1,6 +1,6 @@
 %% Create a synthetic image by repeating the pattern texel numOfTexels 
 %%times placed at random locations
-function im = createSyntheticImageRandomSpacing( imageWidth ,imageHeight ,texel,numberOfTexels )
+function im = createSyntheticImageRandomSpacing( imageHeight ,imageWidth ,texel,numberOfTexels )
     [texelwidth,texelheight] = size(texel);
     im = ones(imageWidth,imageHeight);
     numberOfpointsAdded = 0;
