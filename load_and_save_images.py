@@ -16,7 +16,7 @@ import errno;
 
 
 #load jpg image files from the subdirectory named im under rootFolderName
-def load_im(rootFolderName,imFolderName= 'im'):
+def load_im(rootFolderName,imFolderName= 'im',numImages = None):
     fileName = rootFolderName + "/"+imFolderName+"/*.jpg";
     print 'load_im:Loading images from:'+fileName;
     files = glob.glob(fileName);
@@ -37,6 +37,8 @@ def load_im(rootFolderName,imFolderName= 'im'):
             cv_img[im_count,:,:,:] = im;
             im_count = im_count + 1;
             images.append(img);
+            if numImages is not None and im_count >= numImages :
+                break;
 
     if im_count == 0:
 	    raise Exception("No Images loaded");

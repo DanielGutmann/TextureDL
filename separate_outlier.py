@@ -23,7 +23,8 @@ from keras import backend;
     Author: Sunil Kumar Vengalil
     USAGE EXAMPLE
         python separate_outlier.py -load_path <Path where model is located> 
-        python separate_outlier.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data_prev\Model
+        python separate_outlier.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data600\Model\m_layer_7kernel_5iter__19.h5
+        python separate_outlier.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data600\Model\m_layer_7kernel_7iter__19.h5
 
     Reference links used:
     https://github.com/fchollet/keras/issues/431
@@ -49,63 +50,61 @@ def create_results_folder(path):
 def main():
 
     #load/create model
-    dataFolder = os.getcwd() + '/data_prev';
-    modelFolder = dataFolder+'/latestModel';
-    k = 150;
+    dataFolder = os.getcwd() + '/data_test_orient';
+    modelFolder = dataFolder+'/Model';
+    k = 10;
 
     if hasattr(args, 'load_path') and args.load_path is not None:
         print("Loading Model from: " + args.load_path);
-        modelFolder = args.load_path; 
-        fileName =  modelFolder  +'/Keras_model_weights.h5';
+        strings = args.load_path.split('\\');
+        modelName = strings[len(strings) - 1];
+        modelName = modelName.split('.')[0];
+        fileName = args.load_path; 
         model = e.load_model(fileName);
         print("Model Loaded");
     else:
-        print("Creating new model");
-        model = e.create_model_seg();
-        #set training parameters 
-        sgd = opt.SGD(lr=0.0001, decay=0.0005, momentum=0.9, nesterov=True);
-        model.compile(loss='mean_squared_error', optimizer='sgd');
-
+        raise Exception('Specify model file -load_path <modelfile>');
 
     predicted,im,label,image_files = e.load_model_images_and_evaluate(model,dataFolder);
     print 'Predicted Results Shape:' + str(predicted.shape);
     mse = find_mse(label,predicted);
     sortedIndices = np.argsort(mse);
-    #save the results figure
-    modelFolder;
-    if not os.path.exists(modelFolder) :
-       create_results_folder(modelFolder)
       
-    #save predicted images for topk and bottomk
-    topkFolderName = modelFolder + '/topk_predicted';
-    if not os.path.exists(topkFolderName) :
-        create_results_folder(topkFolderName);
+
+    topkFolderName =   'topk_predicted_'+modelName;
+    topkFullPath = dataFolder + '/'+ topkFolderName;
+    if not os.path.exists(topkFullPath) :
+        create_results_folder(topkFullPath);
     topkIndices = sortedIndices[sortedIndices.size-k:sortedIndices.size ];
     print topkIndices;
     
-    lm.save_results(predicted,image_files,topkIndices,'topk_predicted' );
-    
-    bottomkFolderName = dataFolder + '/bottomk_predicted';
-    if not os.path.exists(bottomkFolderName) :
-       create_results_folder(bottomkFolderName)
+    lm.save_results(predicted,image_files,topkIndices,topkFolderName );
 
-    lm.save_results(predicted,image_files,sortedIndices[0:k-1 ],'bottomk_predicted' );
+    bottomkFolderName =   'bottomk_predicted_'+modelName;
+    bottomkFullPath = dataFolder + '/' + bottomkFolderName;
+    if not os.path.exists(bottomkFullPath) :
+       create_results_folder(bottomkFullPath)
+
+    lm.save_results(predicted,image_files,sortedIndices[0:k-1 ],bottomkFolderName );
 
     #save predicted images for topk and bottomk
-    
-    topkFolderName = dataFolder + '/topk_im';
-    if not os.path.exists(topkFolderName) :
-        create_results_folder(topkFolderName);
+
+    topkFolderName = 'topk_im_'+ modelName
+    topkFullPath = dataFolder + '/'+ topkFolderName;
+    if not os.path.exists(topkFullPath) :
+        create_results_folder(topkFullPath);
     topkIndices = sortedIndices[sortedIndices.size-k:sortedIndices.size ];
     print topkIndices;
     
-    lm.save_results(im,image_files,topkIndices,'topk_im' );
-    
-    bottomkFolderName = dataFolder + '/bottomk_im';
-    if not os.path.exists(bottomkFolderName) :
-       create_results_folder(bottomkFolderName)
+    lm.save_results(im,image_files,topkIndices,topkFolderName );
 
-    lm.save_results(im,image_files,sortedIndices[0:k-1 ],'bottomk_im' );
+    
+    bottomkFolderName =  'bottomk_im_'+modelName;
+    bottomkFullPath = dataFolder  + '/' + bottomkFolderName;
+    if not os.path.exists(bottomkFullPath) :
+       create_results_folder(bottomkFullPath)
+
+    lm.save_results(im,image_files,sortedIndices[0:k-1 ],bottomkFolderName );
 
 main()
 

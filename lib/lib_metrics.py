@@ -1,6 +1,12 @@
 import numpy as np;
 from sklearn.metrics import mean_squared_error;
 
+""" 
+    Author: Sunil Kumar Vengalil
+    
+    functions for finding various metrics on image segmentation
+"""
+
 def find_mse(actual, predicted):
     numImages = actual.shape[0];
     mse = np.zeros(numImages)

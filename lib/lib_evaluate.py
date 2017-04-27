@@ -98,20 +98,51 @@ def create_model_seg(numLayers = MIN_LAYERS,kernel_size = DEFAULT_KERNEL_SIZE,nb
     return model
 
 
+# load/create  a model, evaluate using a dataset and return  results and model object
+# Return : model,predicted,im,label
+def evaluate(model,im,label) :
+    predicted = model.predict(im,batch_size=10);
+    imageCountNan =0;
+    imageCountInf =0;
+    for i in range( predicted.shape[0]):
+        nancount = anynan(np.squeeze(predicted[i,:,:,:]));
+        infcount = anyinf(np.squeeze(predicted[i,:,:,:]));
+        if(nancount > 0) :
+            #print('predicted contains nan:'+str(nancount));
+            imageCountNan = imageCountNan + 1
+            
+        if(infcount > 0) :
+            #print('predicted contains inf:'+str(infcount));
+            imageCountInf = imageCountInf + 1;
+            
+
+    print("Number of image with predicted containing Nan:"+ str(imageCountNan) );
+    print("Number of image with predicted containing Inf:"+ str(imageCountInf) );
+    
+
+
+    print 'Predicted datatype';
+    print predicted.dtype;
+
+    return predicted;
+
+
+
 
 # load/create  a model, evaluate using a dataset and return  results and model object
 # Return : model,predicted,im,label
-def load_model_images_and_evaluate(model,dataFolderPath,dataFolder='im',numImages=None,labelFolder='label') :
-    
+def load_model_images_and_evaluate(model,dataFolderPath,dataFolder='im',labelFolder='label',numImages=None) :
     #load images
+    print dataFolder;
+    print labelFolder;
     if numImages == None :
         #Load all images
         image_files,im = lm.load_im(dataFolderPath,dataFolder);
         label = lm.load_label(image_files,dataFolder,labelFolder);
     else:
-        image_files,im_all = lm.load_im(dataFolderPath);
+        image_files,im_all = lm.load_im(dataFolderPath,dataFolder,numImages);
         im= im_all[0:numImages,:,:];
-        label_all = lm.load_label(image_files);
+        label_all = lm.load_label(image_files,dataFolder,labelFolder);
         label = label_all[0:numImages,:,:]
 
     print 'Image Shape:' + str(im.shape);
@@ -143,34 +174,51 @@ def load_model_images_and_evaluate(model,dataFolderPath,dataFolder='im',numImage
     return predicted,im,label,image_files;
 
 
+  
+
 # load/create  a model, evaluate using a dataset and return  top k  and bottom k results and model object
 # Return : topResults: model : Newly created/loaded Model object
 #          topResults:  ndarray with three images ( image number along last axis)- input image, label and predicted result which gives best result for the model
-def evaluate_top_and_bottom_k(model,dataFolderPath,numImages=None,k = 1) :
+def evaluate_top_and_bottom_k(model,dataFolderPath,dataFolder = 'im',labelFolder='label', numImages=None,k = 1) :
     print 'dataFolderPath:'+dataFolderPath;
-    predicted,im,label,image_files = load_model_images_and_evaluate(model,dataFolderPath=dataFolderPath,numImages=numImages);
+    predicted,im,label,image_files = load_model_images_and_evaluate(model,dataFolderPath=dataFolderPath,dataFolder=dataFolder,labelFolder=labelFolder,numImages=numImages);
     print 'Predicted Results Shape:' + str(predicted.shape);
     print type(predicted);
     print type(predicted.dtype);
     mse = find_mse(label,predicted);
     sortedIndices = np.argsort(mse);
-    topResults = np.zeros((k,400,200,3));
-    bottomResults = np.zeros((k,400,200,3));
+    print im[0].shape;
+    topResults = np.zeros((k,im[0].shape[0],im[0].shape[1],3));
+    bottomResults = np.zeros((k,im[0].shape[0],im[0].shape[1],3));
+    i = np.zeros((im[0].shape[0],im[0].shape[1],1));
+
+    print 'image with highest error'
+    print image_files[sortedIndices[0]];
 
     for index in range(k) :
-        i =  im[sortedIndices[index]];
+        if len(im.shape )== 4 :
+            print im[sortedIndices[index]].shape;
+            i[:,:,0] =  im[sortedIndices[index],:,:,1]; # take green channel in case of fundal color image
+        else :
+            i = im[sortedIndices[index],:,:];
         l =  label[sortedIndices[index]];
         p = predicted[index];
+        print i.shape;
+        print l.shape;
+        print p.shape;
         topResults[index,:,:,:] = np.concatenate( (i, l,p),axis = 2);
 
     for index in range(k) :
-        i = im[sortedIndices[sortedIndices.size - 1 - index]];
+        if len(im.shape) == 4 :
+            i[:,:,0] = im[sortedIndices[sortedIndices.size - 1 - index],:,:,1]; # take green channel in case of fundal color image
+        else:
+            i = im[sortedIndices[sortedIndices.size - 1 - index]];
+            
         l = label[sortedIndices[sortedIndices.size - 1 - index]];
         p = predicted[sortedIndices[sortedIndices.size - 1 - index]];
         bottomResults[index,:,:,:] = np.concatenate( (i,l,p),axis = 2);
 
     return topResults,bottomResults,im,label;
-
 
 # evaluate using a dataset and return  results 
 # Return :topResults: model : Newly created/loaded Model object

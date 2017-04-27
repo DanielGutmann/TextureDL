@@ -33,6 +33,7 @@ import matplotlib.pyplot as plt;
     USAGE EXAMPLE
         python visualize_results.py -load_path <Path where model is located> 
         python visualize_results.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data600\Model\m_layer_7kernel_5iter__10.h5
+        python visualize_results.py -load_path C:\Users\Sunilkumar\Documents\GitHub\TextureDL\data600\Model\m_layer_7kernel_7iter__19.h5
 
     Reference links used:
     https://github.com/fchollet/keras/issues/431
@@ -58,8 +59,8 @@ def create_results_folder(path):
 def main():
 
     #load/create model
-    dataFolder = os.getcwd() + '/data600';
-    modelFolder = dataFolder+'/Model';
+    dataFolderPath = os.getcwd() + '/data_test_orient';
+    modelFolder = dataFolderPath+'/Model';
 
     if hasattr(args, 'load_path') and args.load_path is not None:
         print("Loading Model from: " + args.load_path);
@@ -74,7 +75,7 @@ def main():
         model.compile(loss='mean_squared_error', optimizer='sgd');
 
     
-    topResults,bottomResults,im,label = e.evaluate_top_and_bottom_k(model=model,dataFolderPath=dataFolder,k=1);
+    topResults,bottomResults,im,label = e.evaluate_top_and_bottom_k(model=model,dataFolderPath=dataFolderPath,k=1);
 
 
     #Display image, label and predicted output for the image with highest error
