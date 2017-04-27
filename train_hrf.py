@@ -13,8 +13,8 @@ import lib_evaluate as e;
 """ 
 
     USAGE EXAMPLE
-        python train.py 
-        python train.py -load_path /home/ubuntu/github/TextureDL/data600/Model/m_layer_7kernel_5iter__9.h5
+        python train_hrf.py 
+        python train_hrf.py -load_path /home/ubuntu/github/TextureDL/hrf/Model/initial_model.h5
 
 """
 
@@ -22,6 +22,7 @@ MIN_LAYERS = 7;
 DEFAULT_KERNEL_SIZE = 3;
 DEFAULT_NB_FILTER = [10,10];
 
+IM_SIZE = 100;
 
 def create_model_seg(numLayers = MIN_LAYERS,kernel_size = DEFAULT_KERNEL_SIZE,nb_filter=DEFAULT_NB_FILTER):
     if numLayers  < MIN_LAYERS :
@@ -37,7 +38,7 @@ def create_model_seg(numLayers = MIN_LAYERS,kernel_size = DEFAULT_KERNEL_SIZE,nb
 
     zeropadding = kernel_size // 2; 
     model = Sequential();
-    model.add(ZeroPadding2D((zeropadding,zeropadding),input_shape=(513,513,3)));
+    model.add(ZeroPadding2D((zeropadding,zeropadding),input_shape=(IM_SIZE,IM_SIZE,3)));
     model.add(Convolution2D(nb_filter[0], kernel_size, kernel_size, dim_ordering='tf' ,activation='relu'));
     model.add(ZeroPadding2D((zeropadding,zeropadding)));
     model.add(Convolution2D(nb_filter[1], kernel_size, kernel_size,dim_ordering='tf', activation='relu'));
@@ -64,11 +65,11 @@ def main():
     
     dataFolder = os.getcwd() + '/hrf';
     #dataFolder = os.getcwd() + '/data10';
-    modelFolder = dataFolder+'/localModel';
+    modelFolder = dataFolder+'/Model100';
     args = parser.parse_args();
-    kernel_size = 3;
+    kernel_size = 7;
     nb_layer = 7;
-    nb_filter= [5,5];
+    nb_filter= [10,10];
     if hasattr(args, 'load_path') and args.load_path is not None:
         print("Loading Model from: " + args.load_path);
         fileName = args.load_path;
@@ -82,21 +83,21 @@ def main():
         model.compile(loss='mean_squared_error', optimizer=sgd);
 
 
-    predicted,im,label,image_files = e.load_model_images_and_evaluate(model,dataFolderPath = dataFolder,labelFolder='hrf_gt_splitted',dataFolder='hrf_splitted');
+    predicted,im,label,image_files = e.load_model_images_and_evaluate(model,dataFolderPath = dataFolder,labelFolder='hrf_splitted_gt_100',dataFolder='hrf_splitted_100');
 
 
     #start training
-    sgd = opt.SGD(lr=0.00000001, decay=0.0005, momentum=0.9, nesterov=True);
+    sgd = opt.SGD(lr=0.0000001, decay=0.0005, momentum=0.9, nesterov=True);
     model.compile(loss='mean_squared_error', optimizer=sgd);
 
     #start training
-    batchsize=10
-    nb_epoch = 10;
-    store_model_interval_in_epochs = 2;
+    batchsize=200;
+    nb_epoch = 100;
+    store_model_interval_in_epochs = 10;
     model_file_prefix = 'm_layer_'+str(nb_layer) +'kernel_'+str(kernel_size)+'iter_';
     store_model_path = modelFolder+'/';
     steps = nb_epoch/store_model_interval_in_epochs;
-    for iter in range(10,20,1) :
+    for iter in range(steps) :
         h = model.fit(im,label,batch_size=batchsize,nb_epoch=store_model_interval_in_epochs);
         print("Storing model...");
         fileName = model_file_prefix +'_' + str(iter)+'.h5'

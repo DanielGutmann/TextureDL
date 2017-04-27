@@ -194,13 +194,14 @@ def evaluate_top_and_bottom_k(model,dataFolderPath,dataFolder = 'im',labelFolder
 
     print 'image with highest error'
     print image_files[sortedIndices[0]];
+    print im.shape;
 
     for index in range(k) :
-        if len(im.shape )== 4 :
+        if im.shape[3]== 3 :
             print im[sortedIndices[index]].shape;
             i[:,:,0] =  im[sortedIndices[index],:,:,1]; # take green channel in case of fundal color image
         else :
-            i = im[sortedIndices[index],:,:];
+            i = im[sortedIndices[index],:,:,:];
         l =  label[sortedIndices[index]];
         p = predicted[index];
         print i.shape;
@@ -209,10 +210,10 @@ def evaluate_top_and_bottom_k(model,dataFolderPath,dataFolder = 'im',labelFolder
         topResults[index,:,:,:] = np.concatenate( (i, l,p),axis = 2);
 
     for index in range(k) :
-        if len(im.shape) == 4 :
+        if im.shape[3] == 3 :
             i[:,:,0] = im[sortedIndices[sortedIndices.size - 1 - index],:,:,1]; # take green channel in case of fundal color image
         else:
-            i = im[sortedIndices[sortedIndices.size - 1 - index]];
+            i = im[sortedIndices[sortedIndices.size - 1 - index],:,:,:];
             
         l = label[sortedIndices[sortedIndices.size - 1 - index]];
         p = predicted[sortedIndices[sortedIndices.size - 1 - index]];
